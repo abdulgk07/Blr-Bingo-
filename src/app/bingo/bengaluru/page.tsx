@@ -69,7 +69,7 @@ export default function BingoEntryPage() {
               className="text-center text-lg h-12"
             />
           
-          <Tabs defaultValue="create" className="w-full">
+          <Tabs defaultValue="join" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="create"><PlusCircle/> Create Game</TabsTrigger>
               <TabsTrigger value="join"><Users/> Join Game</TabsTrigger>
