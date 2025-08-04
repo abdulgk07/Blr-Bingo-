@@ -11,18 +11,14 @@ const CustomLogo = () => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
     className="w-24 h-24 text-primary"
   >
-    <path d="M6 12h12" />
-    <path d="M12 6v12" />
-    <path d="M17.5 17.5L19 19" />
-    <path d="M6.5 6.5L5 5" />
-    <path d="M17.5 6.5L19 5" />
-    <path d="M6.5 17.5L5 19" />
-    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+    <path d="M2 17l10 5 10-5" />
+    <path d="M2 12l10 5 10-5" />
   </svg>
 );
 
@@ -44,7 +40,7 @@ export default function WelcomePage() {
             Welcome to the Ai Collective
           </h1>
           <p className="font-body text-muted-foreground mt-2 text-lg">
-            the Worlds largest ai community
+            the World's largest AI community
           </p>
         </div>
 
