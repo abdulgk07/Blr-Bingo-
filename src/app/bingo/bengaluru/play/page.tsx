@@ -89,16 +89,6 @@ export default function BingoPage() {
     }
   }, [calledPrompts, card, isHost, winner, markedSquares, playerName]);
   
-  // This simulates the host calling prompts at an interval
-  useEffect(() => {
-    if (isHost && winner === null) {
-      const interval = setInterval(() => {
-        handleNextPrompt();
-      }, 5000); // Call a new prompt every 5 seconds
-      return () => clearInterval(interval);
-    }
-  }, [isHost, winner, availablePrompts]);
-
   const handleNextPrompt = () => {
     setAvailablePrompts(prevAvail => {
       if (prevAvail.length === 0) return prevAvail;
@@ -142,7 +132,7 @@ export default function BingoPage() {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl">Game Control</CardTitle>
-                        <CardDescription>A new prompt is called automatically every 5 seconds.</CardDescription>
+                        <CardDescription>Click the button to call the next bingo prompt for all players.</CardDescription>
                     </CardHeader>
                     <CardContent className="text-center space-y-4">
                         <div className="bg-muted p-4 rounded-lg shadow-inner min-h-[80px] flex items-center justify-center">
@@ -154,7 +144,7 @@ export default function BingoPage() {
                             onClick={handleNextPrompt}
                             disabled={availablePrompts.length === 0 || !!winner}
                         >
-                           {winner ? 'Game Over' : 'Call Next Prompt Manually'}
+                           {winner ? 'Game Over' : 'Call Next Prompt'}
                         </Button>
                     </CardContent>
                 </Card>
