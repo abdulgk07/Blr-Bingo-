@@ -81,35 +81,24 @@ export default function BingoPage() {
   
   // MOCK: System acts as host for testing purposes, calling a prompt every 2 seconds
   useEffect(() => {
-      if (!isHost) { // Only run this auto-caller for players in the mock environment
-          const interval = setInterval(() => {
-            setWinner(currentWinner => {
-              if (currentWinner) {
-                clearInterval(interval);
-                return currentWinner;
-              }
+    if (isHost || winner) return; // Don't run if the user is the host or if there's already a winner
 
-              setAvailablePrompts(prevAvail => {
-                  if (prevAvail.length === 0) {
-                      clearInterval(interval);
-                      return prevAvail;
-                  }
-                  
-                  const newPromptIndex = Math.floor(Math.random() * prevAvail.length);
-                  const newPrompt = prevAvail[newPromptIndex];
-                  const remainingPrompts = prevAvail.filter((_, index) => index !== newPromptIndex);
-                  
-                  setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
-                  return remainingPrompts;
-              });
+    const interval = setInterval(() => {
+        if (availablePrompts.length === 0) {
+            clearInterval(interval);
+            return;
+        }
+        
+        const newPromptIndex = Math.floor(Math.random() * availablePrompts.length);
+        const newPrompt = availablePrompts[newPromptIndex];
+        
+        setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
+        setAvailablePrompts(prevAvail => prevAvail.filter((_, index) => index !== newPromptIndex));
 
-              return null; // winner state is unchanged
-            })
-          }, 2000);
+    }, 2000);
 
-          return () => clearInterval(interval);
-      }
-  }, [isHost]);
+    return () => clearInterval(interval);
+  }, [isHost, availablePrompts, winner]);
 
 
   // Effect for players to check for a win whenever their card or prompts change
@@ -137,6 +126,10 @@ export default function BingoPage() {
                   title: "BINGO!",
                   description: "Waiting for the host to verify your win.",
               });
+              // For the mock game, automatically declare the player as the winner
+              if (!isHost) {
+                  handleDeclareWinner(playerName);
+              }
           }
       }
     }
@@ -180,13 +173,13 @@ export default function BingoPage() {
           <Crown className="w-32 h-32 text-amber-400 absolute -top-24 -left-16 transform -rotate-12" />
           <PartyPopper className="w-24 h-24 text-accent animate-bounce" />
         </div>
-        <h1 className="font-headline text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 mt-4 animate-pulse">
+        <h1 className="font-headline text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-red-400 mt-4 animate-pulse">
             BINGO!
         </h1>
         <p className="font-body text-3xl text-muted-foreground mt-4">
             Congratulations, <span className="font-bold text-primary">{winner}</span>!
         </p>
-        <Button size="lg" className="mt-12 font-headline text-xl" onClick={() => router.push('/games')}>
+        <Button size="lg" className="mt-12 font-headline text-xl" onClick={() => router.push('/bingo/bengaluru')}>
             Play Another Game
         </Button>
       </main>
@@ -233,9 +226,9 @@ export default function BingoPage() {
                        </div>
 
                        {bingoCallers.length > 0 && (
-                           <div className="bg-amber-100 border-l-4 border-amber-500 p-4 rounded-r-lg">
-                               <h4 className="font-bold text-amber-800">Bingo Called!</h4>
-                               <p className="text-sm text-amber-700 mb-2">A player has a winning card. Verify and declare the winner!</p>
+                           <div className="bg-red-900/50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                               <h4 className="font-bold text-red-200">Bingo Called!</h4>
+                               <p className="text-sm text-red-300 mb-2">A player has a winning card. Verify and declare the winner!</p>
                                <div className="space-y-2">
                                    {bingoCallers.map(name => (
                                       <AlertDialog key={name}>
@@ -322,7 +315,3 @@ export default function BingoPage() {
     </main>
   );
 }
-
-    
-
-    
