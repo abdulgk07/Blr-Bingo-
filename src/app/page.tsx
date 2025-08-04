@@ -4,24 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-
-const CustomLogo = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-24 h-24 text-primary"
-  >
-    <path d="M12 2L2 7l10 5 10-5-10-5z" />
-    <path d="M2 17l10 5 10-5" />
-    <path d="M2 12l10 5 10-5" />
-  </svg>
-);
-
+import { Coffee } from "lucide-react";
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -34,10 +17,10 @@ export default function WelcomePage() {
     <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
        <div className="text-center mb-8">
           <div className="inline-block p-4 bg-primary/20 rounded-full">
-            <CustomLogo />
+            <Coffee className="w-24 h-24 text-primary" />
           </div>
           <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mt-4">
-            Welcome to the Ai Collective
+            Welcome to the AI Collective
           </h1>
           <p className="font-body text-muted-foreground mt-2 text-lg">
             the World's largest AI community
