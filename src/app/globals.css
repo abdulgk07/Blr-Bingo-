@@ -4,48 +4,48 @@
 
 @layer base {
   :root {
-    --background: 48 96% 94%; /* LemonChiffon-ish */
-    --foreground: 240 10% 3.9%;
-    --card: 48 88% 88%; /* Lighter LemonChiffon */
-    --card-foreground: 240 10% 3.9%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 158 79% 51%; /* Aquamarine */
-    --primary-foreground: 240 10% 3.9%;
-    --secondary: 240 5% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 63%;
+    --background: 240 5% 96%; /* Light Gray */
+    --foreground: 222 47% 11%; /* Dark Navy */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%; /* Navy Blue */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 240 5% 90%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 240 5% 90%;
+    --muted-foreground: 240 4% 46%;
     --accent: 31 100% 50%; /* Energetic Orange */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 20%;
-    --input: 240 5% 20%;
-    --ring: 158 79% 51%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 217 91% 60%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 100%;
-    --card: 240 10% 10%;
-    --card-foreground: 0 0% 100%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 158 79% 51%; /* Aquamarine */
-    --primary-foreground: 240 10% 3.9%;
-    --secondary: 240 5% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 63%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 216 15% 65%;
     --accent: 31 100% 50%; /* Energetic Orange */
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 20%;
-    --input: 240 5% 20%;
-    --ring: 158 79% 51%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 217 91% 60%;
   }
 }
 
