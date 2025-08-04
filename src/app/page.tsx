@@ -19,11 +19,13 @@ export default function WelcomePage() {
           <div className="inline-block p-4 bg-primary/20 rounded-full">
             <Coffee className="w-24 h-24 text-primary" />
           </div>
-          <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mt-4">
-            Welcome to the AI Collective
+          <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mt-4 leading-tight">
+            Welcome to
+            <br />
+            <span className="text-primary">The AI Collective</span>
           </h1>
-          <p className="font-body text-muted-foreground mt-2 text-lg">
-            the World's largest AI community
+          <p className="font-body text-muted-foreground mt-3 text-lg">
+            The World's Largest AI Community
           </p>
         </div>
 
