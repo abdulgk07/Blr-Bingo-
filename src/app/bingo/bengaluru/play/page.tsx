@@ -132,9 +132,9 @@ export default function BingoPage() {
                   description: "Waiting for the host to verify your win.",
               });
               // For the mock game, automatically declare the player as the winner
-              // if (!isHost) {
+              if (!isHost) {
                   handleDeclareWinner(playerName);
-              // }
+              }
           }
       }
     }
@@ -158,7 +158,10 @@ export default function BingoPage() {
       const newPrompt = prevAvail[newPromptIndex];
       
       // In a real app, the host would send an update to the backend.
-      setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
+      // For mock, only host should call prompts
+      if(isHost) {
+        setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
+      }
       return prevAvail.filter((_, index) => index !== newPromptIndex);
     });
   };
@@ -266,7 +269,7 @@ export default function BingoPage() {
                             <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Dices /> Called Prompts ({calledPrompts.length})</h4>
                             <div className="h-24 overflow-y-auto bg-muted/50 p-2 rounded-md mt-2 text-sm">
                                 <ol className="list-decimal list-inside">
-                                {calledPrompts.slice().reverse().map(p => <li key={p}>{p}</li>)}
+                                {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}`}>{p}</li>)}
                                 </ol>
                             </div>
                        </div>
@@ -301,7 +304,7 @@ export default function BingoPage() {
               winningPattern={[]}
             />
           ) : (
-            <div className="aspect-square w-full flex items-center justify-center bg-muted/50 rounded-md">
+            <div className="aspect-square w-full flex items-center justify-center bg-muted/50 rounded-md border">
               <p>Loading your card...</p>
             </div>
           )}
@@ -314,7 +317,7 @@ export default function BingoPage() {
             <CardContent className="p-4 pt-0">
                 <div className="h-24 overflow-y-auto bg-muted/50 p-2 rounded-md text-sm">
                     <ol className="list-decimal list-inside">
-                        {calledPrompts.slice().reverse().map(p => <li key={p}>{p}</li>)}
+                        {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}`}>{p}</li>)}
                     </ol>
                 </div>
             </CardContent>
