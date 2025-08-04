@@ -75,6 +75,7 @@ export default function BingoPage() {
     
     setCalledPrompts(game.calledPrompts);
     setAvailablePrompts(game.availablePrompts);
+    setWinner(game.winner);
 
   }, [isHost]);
   
@@ -82,8 +83,14 @@ export default function BingoPage() {
   useEffect(() => {
       if (!isHost) { // Only run this auto-caller for players in the mock environment
           const interval = setInterval(() => {
+            setWinner(currentWinner => {
+              if (currentWinner) {
+                clearInterval(interval);
+                return currentWinner;
+              }
+
               setAvailablePrompts(prevAvail => {
-                  if (prevAvail.length === 0 || winner) {
+                  if (prevAvail.length === 0) {
                       clearInterval(interval);
                       return prevAvail;
                   }
@@ -95,11 +102,14 @@ export default function BingoPage() {
                   setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
                   return remainingPrompts;
               });
+
+              return null; // winner state is unchanged
+            })
           }, 2000);
 
           return () => clearInterval(interval);
       }
-  }, [isHost, winner]);
+  }, [isHost]);
 
 
   // Effect for players to check for a win whenever their card or prompts change
@@ -312,5 +322,7 @@ export default function BingoPage() {
     </main>
   );
 }
+
+    
 
     
