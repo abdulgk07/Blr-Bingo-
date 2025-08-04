@@ -64,36 +64,41 @@ export default function BingoPage() {
     const game = MOCK_GAME_STATE;
     setPlayers(game.players);
 
-    if (!isHost) {
-      const newCard = generateBingoCard(BINGO_ENTRIES);
-      setCard(newCard);
+    // All players (including host for dev purposes) get a card, but UI will differ
+    const newCard = generateBingoCard(BINGO_ENTRIES);
+    setCard(newCard);
 
-      const newMarkedSquares = Array(25).fill(false);
-      newMarkedSquares[FREE_SPACE_INDEX] = true;
-      setMarkedSquares(newMarkedSquares);
-    }
+    const newMarkedSquares = Array(25).fill(false);
+    newMarkedSquares[FREE_SPACE_INDEX] = true;
+    setMarkedSquares(newMarkedSquares);
     
     setCalledPrompts(game.calledPrompts);
     setAvailablePrompts(game.availablePrompts);
     setWinner(game.winner);
 
-  }, [isHost]);
+  }, []);
   
   // MOCK: System acts as host for testing purposes, calling a prompt every 2 seconds
   useEffect(() => {
     if (isHost || winner) return; // Don't run if the user is the host or if there's already a winner
 
     const interval = setInterval(() => {
-        if (availablePrompts.length === 0) {
+        if (availablePrompts.length === 0 || winner) { // Added winner check here too
             clearInterval(interval);
             return;
         }
         
-        const newPromptIndex = Math.floor(Math.random() * availablePrompts.length);
-        const newPrompt = availablePrompts[newPromptIndex];
-        
-        setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
-        setAvailablePrompts(prevAvail => prevAvail.filter((_, index) => index !== newPromptIndex));
+        setAvailablePrompts(prevAvail => {
+            if (prevAvail.length === 0) return prevAvail;
+            
+            const newPromptIndex = Math.floor(Math.random() * prevAvail.length);
+            const newPrompt = prevAvail[newPromptIndex];
+            
+            // In a real app, this update would come from the backend.
+            setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
+
+            return prevAvail.filter((_, index) => index !== newPromptIndex);
+        });
 
     }, 2000);
 
@@ -127,9 +132,9 @@ export default function BingoPage() {
                   description: "Waiting for the host to verify your win.",
               });
               // For the mock game, automatically declare the player as the winner
-              if (!isHost) {
+              // if (!isHost) {
                   handleDeclareWinner(playerName);
-              }
+              // }
           }
       }
     }
@@ -141,6 +146,8 @@ export default function BingoPage() {
 
   // Handler for the HOST to call the next prompt manually
   const handleNextPrompt = () => {
+    if (winner) return;
+
     setAvailablePrompts(prevAvail => {
       if (prevAvail.length === 0) {
         toast({ title: "No more prompts!", variant: "destructive" });
@@ -171,7 +178,7 @@ export default function BingoPage() {
       <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen text-center bg-background">
         <div className="relative">
           <Crown className="w-32 h-32 text-amber-400 absolute -top-24 -left-16 transform -rotate-12" />
-          <PartyPopper className="w-24 h-24 text-accent animate-bounce" />
+          <PartyPopper className="w-24 h-24 text-primary animate-bounce" />
         </div>
         <h1 className="font-headline text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-red-400 mt-4 animate-pulse">
             BINGO!
@@ -225,7 +232,7 @@ export default function BingoPage() {
                             </ul>
                        </div>
 
-                       {bingoCallers.length > 0 && (
+                       {bingoCallers.length > 0 && !winner && (
                            <div className="bg-red-900/50 border-l-4 border-red-500 p-4 rounded-r-lg">
                                <h4 className="font-bold text-red-200">Bingo Called!</h4>
                                <p className="text-sm text-red-300 mb-2">A player has a winning card. Verify and declare the winner!</p>
