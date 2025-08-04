@@ -81,14 +81,12 @@ export default function BingoPage() {
   // MOCK: System acts as host for testing purposes, calling a prompt every 2 seconds
   useEffect(() => {
     // Only run for the mock game (not a real host) and if there's no winner yet.
-    if (isHost || winner) return;
-  
+    if (isHost) return;
+
     const interval = setInterval(() => {
-      // Re-check winner status inside interval to stop it immediately
-      setWinner(currentWinner => {
-        if (currentWinner) {
-          clearInterval(interval);
-          return currentWinner;
+        if (winner) {
+            clearInterval(interval);
+            return;
         }
   
         setAvailablePrompts(prevAvail => {
@@ -104,9 +102,6 @@ export default function BingoPage() {
   
           return prevAvail.filter((_, index) => index !== newPromptIndex);
         });
-
-        return null; // No change to winner state
-      });
   
     }, 2000);
   
@@ -284,7 +279,7 @@ export default function BingoPage() {
                                     <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Dices /> Called Prompts ({calledPrompts.length})</h4>
                                     <div className="h-24 overflow-y-auto bg-muted/50 p-2 rounded-md mt-2 text-sm">
                                         <ol className="list-decimal list-inside">
-                                        {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}`}>{p}</li>)}
+                                        {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}-host`}>{p}</li>)}
                                         </ol>
                                     </div>
                             </div>
@@ -303,7 +298,7 @@ export default function BingoPage() {
                 <Card className="w-full max-w-md mb-4 shadow-md">
                         <CardContent className="p-4 text-center">
                             <p className="font-body text-muted-foreground mb-1">Current Prompt:</p>
-                            <p className="font-headline text-xl font-bold text-primary truncate">{currentPrompt}</p>
+                            <p className="font-headline text-xl font-bold text-accent truncate">{currentPrompt}</p>
                         </CardContent>
                 </Card>
 
