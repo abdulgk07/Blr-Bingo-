@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { Users, Gamepad, Dices, PlusCircle } from 'lucide-react';
+import { Users, Gamepad, Dices, PlusCircle, TestTube } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function BingoEntryPage() {
@@ -21,13 +21,9 @@ export default function BingoEntryPage() {
       return;
     }
     setError('');
-    // TODO: Implement actual game creation logic
-    // This would normally involve calling a backend service to create a game
-    // and get back a unique game ID. For now, we'll use a mock one.
     const newGameId = Math.random().toString(36).substring(2, 6).toUpperCase();
     console.log(`Creating game for ${playerName} with ID ${newGameId}`);
     
-    // We are passing player name and host status via query params for now
     router.push(`/bingo/bengaluru/lobby/${newGameId}?playerName=${playerName}&isHost=true`); 
   };
 
@@ -37,10 +33,14 @@ export default function BingoEntryPage() {
       return;
     }
     setError('');
-    // TODO: Implement game joining logic
     console.log(`Player ${playerName} joining game ${gameCode}`);
     
     router.push(`/bingo/bengaluru/lobby/${gameCode}?playerName=${playerName}`);
+  };
+
+  const handleMockGame = () => {
+    const mockPlayerName = playerName.trim() || 'Tester';
+    router.push(`/bingo/bengaluru/play?playerName=${mockPlayerName}&isHost=false`);
   };
 
   return (
@@ -65,7 +65,7 @@ export default function BingoEntryPage() {
         <CardContent className="space-y-4">
            <Input 
               id="player-name"
-              placeholder="Enter your name"
+              placeholder="Enter your name (optional for mock game)"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               className="text-center text-lg h-12"
@@ -95,6 +95,17 @@ export default function BingoEntryPage() {
           {error && (
             <p className="text-sm font-medium text-destructive text-center">{error}</p>
           )}
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t"></div>
+            <span className="flex-shrink mx-4 text-xs text-muted-foreground">FOR TESTING</span>
+            <div className="flex-grow border-t"></div>
+          </div>
+
+          <Button variant="outline" className="w-full" onClick={handleMockGame}>
+            <TestTube className="w-4 h-4 mr-2" />
+            Run Mock Game (You are Player, System is Host)
+          </Button>
 
         </CardContent>
       </Card>
