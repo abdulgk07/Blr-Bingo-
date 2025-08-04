@@ -22,10 +22,13 @@ export default function BingoEntryPage() {
     }
     setError('');
     // TODO: Implement actual game creation logic
-    console.log(`Creating game for ${playerName}`);
-    // For now, we'll just navigate to the bingo board page.
-    // In the future, this would navigate to a lobby with a new game ID.
-    router.push('/bingo/bengaluru/play'); 
+    // This would normally involve calling a backend service to create a game
+    // and get back a unique game ID. For now, we'll use a mock one.
+    const newGameId = Math.random().toString(36).substring(2, 6).toUpperCase();
+    console.log(`Creating game for ${playerName} with ID ${newGameId}`);
+    
+    // We are passing player name and host status via query params for now
+    router.push(`/bingo/bengaluru/lobby/${newGameId}?playerName=${playerName}&isHost=true`); 
   };
 
   const handleJoinGame = () => {
@@ -36,9 +39,8 @@ export default function BingoEntryPage() {
     setError('');
     // TODO: Implement game joining logic
     console.log(`Player ${playerName} joining game ${gameCode}`);
-    // For now, we'll just navigate to the bingo board page.
-    // In the future, this would validate the game code and navigate to the lobby.
-    router.push(`/bingo/bengaluru/play?gameId=${gameCode}`);
+    
+    router.push(`/bingo/bengaluru/lobby/${gameCode}?playerName=${playerName}`);
   };
 
   return (

@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BingoCard } from '@/components/bingo-card';
 import { BINGO_ENTRIES, generateBingoCard, checkWin } from '@/lib/bingo';
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Dices, RefreshCw, Users, PartyPopper } from 'lucide-react';
+import { Users, Dices, PartyPopper } from 'lucide-react';
 
 const FREE_SPACE_INDEX = 12;
 
@@ -27,11 +28,14 @@ const MOCK_GAME_STATE = {
   status: 'playing', // or 'waiting', 'finished'
 };
 
-// Mock current player for demonstration
-const MOCK_CURRENT_PLAYER_ID = 'player-2'; // Change to 'player-1' to see host view
-
 export default function BingoPage() {
-  const [isHost, setIsHost] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isHost = searchParams.get('isHost') === 'true';
+  const playerName = searchParams.get('playerName') || 'Player';
+  // In a real app, the player ID would be a unique ID from the backend/auth
+  const playerId = playerName; 
+
   const [card, setCard] = useState<string[]>([]);
   const [markedSquares, setMarkedSquares] = useState<boolean[]>([]);
   const [calledPrompts, setCalledPrompts] = useState<string[]>([]);
@@ -41,38 +45,36 @@ export default function BingoPage() {
 
   const { toast } = useToast();
 
-  // Initialize game state
+  // Initialize game state from mock data
   useEffect(() => {
-    // In a real app, you'd fetch this from your backend based on the game ID
     const game = MOCK_GAME_STATE;
-    const currentUserId = MOCK_CURRENT_PLAYER_ID;
-
-    setIsHost(game.hostId === currentUserId);
     setPlayers(game.players);
 
-    const newCard = generateBingoCard(BINGO_ENTRIES);
-    setCard(newCard);
+    // Only players get a card
+    if (!isHost) {
+      const newCard = generateBingoCard(BINGO_ENTRIES);
+      setCard(newCard);
 
-    const newMarkedSquares = Array(25).fill(false);
-    newMarkedSquares[FREE_SPACE_INDEX] = true;
-    setMarkedSquares(newMarkedSquares);
+      const newMarkedSquares = Array(25).fill(false);
+      newMarkedSquares[FREE_SPACE_INDEX] = true;
+      setMarkedSquares(newMarkedSquares);
+    }
+    
     setCalledPrompts(game.calledPrompts);
-    setAvailablePrompts(game.availablePrompts.filter(p => !game.calledPrompts.includes(p) && !newCard.includes(p)));
+    setAvailablePrompts(game.availablePrompts.filter(p => !game.calledPrompts.includes(p)));
 
-  }, []);
+  }, [isHost]);
 
   // Effect to check for a win whenever the called prompts change
   useEffect(() => {
     if (winner || isHost) return;
 
-    const newMarked = Array(25).fill(false);
+    const newMarked = [...markedSquares];
     let changed = false;
     card.forEach((entry, index) => {
-      if (index === FREE_SPACE_INDEX || calledPrompts.includes(entry)) {
+      if (calledPrompts.includes(entry) && !newMarked[index]) {
         newMarked[index] = true;
-        if (!markedSquares[index]) {
-            changed = true;
-        }
+        changed = true;
       }
     });
 
@@ -81,21 +83,33 @@ export default function BingoPage() {
         if (checkWin(newMarked)) {
             // In a real app, the client would notify the backend they have won.
             // The backend would verify and then update the game state for all players.
-            setWinner("You"); 
+            // For now, we simulate this by setting the winner directly.
+            setWinner(playerName); 
         }
     }
-
-  }, [calledPrompts, card, isHost, winner, markedSquares]);
+  }, [calledPrompts, card, isHost, winner, markedSquares, playerName]);
   
-  const handleNextPrompt = () => {
-    if (!isHost || availablePrompts.length === 0 || winner) return;
+  // This simulates the host calling prompts at an interval
+  useEffect(() => {
+    if (isHost && winner === null) {
+      const interval = setInterval(() => {
+        handleNextPrompt();
+      }, 5000); // Call a new prompt every 5 seconds
+      return () => clearInterval(interval);
+    }
+  }, [isHost, winner, availablePrompts]);
 
-    const newPrompt = availablePrompts[Math.floor(Math.random() * availablePrompts.length)];
-    
-    // In a real app, the host would send an update to the backend.
-    // The backend would then push the new state to all players.
-    setCalledPrompts(prev => [...prev, newPrompt]);
-    setAvailablePrompts(prev => prev.filter(p => p !== newPrompt));
+  const handleNextPrompt = () => {
+    setAvailablePrompts(prevAvail => {
+      if (prevAvail.length === 0) return prevAvail;
+      
+      const newPrompt = prevAvail[Math.floor(Math.random() * prevAvail.length)];
+      
+      // In a real app, the host would send an update to the backend.
+      // The backend would then push the new state to all players.
+      setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
+      return prevAvail.filter(p => p !== newPrompt);
+    });
   };
 
   const currentPrompt = calledPrompts.length > 0 ? calledPrompts[calledPrompts.length - 1] : "Waiting for host to start...";
@@ -110,8 +124,8 @@ export default function BingoPage() {
         <p className="font-body text-3xl text-muted-foreground mt-2">
             Congratulations, <span className="font-bold text-primary">{winner}</span>!
         </p>
-        <Button size="lg" className="mt-8 font-headline" onClick={() => window.location.reload()}>
-            Play Again
+        <Button size="lg" className="mt-8 font-headline" onClick={() => router.push('/games')}>
+            Play Another Game
         </Button>
       </main>
     )
@@ -128,7 +142,7 @@ export default function BingoPage() {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl">Game Control</CardTitle>
-                        <CardDescription>Use the button below to draw the next prompt for all players.</CardDescription>
+                        <CardDescription>A new prompt is called automatically every 5 seconds.</CardDescription>
                     </CardHeader>
                     <CardContent className="text-center space-y-4">
                         <div className="bg-muted p-4 rounded-lg shadow-inner min-h-[80px] flex items-center justify-center">
@@ -140,7 +154,7 @@ export default function BingoPage() {
                             onClick={handleNextPrompt}
                             disabled={availablePrompts.length === 0 || !!winner}
                         >
-                           {winner ? 'Game Over' : 'Call Next Prompt'}
+                           {winner ? 'Game Over' : 'Call Next Prompt Manually'}
                         </Button>
                     </CardContent>
                 </Card>
@@ -152,7 +166,7 @@ export default function BingoPage() {
                        <div>
                             <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Users /> Players ({players.length})</h4>
                             <ul className="list-disc pl-5 mt-2 text-foreground">
-                                {players.map(p => <li key={p.id}>{p.name} {p.id === MOCK_CURRENT_PLAYER_ID && '(You)'}</li>)}
+                                {players.map(p => <li key={p.id}>{p.name} {p.id === 'player-1' && '(You)'}</li>)}
                             </ul>
                        </div>
                        <div>
@@ -190,7 +204,7 @@ export default function BingoPage() {
             <BingoCard 
               card={card}
               markedSquares={markedSquares}
-              onSquareClick={() => {}} // Clicking is now disabled
+              onSquareClick={() => {}} // Clicking is disabled
               winningPattern={[]}
             />
           ) : (
@@ -215,5 +229,3 @@ export default function BingoPage() {
     </main>
   );
 }
-
-    
