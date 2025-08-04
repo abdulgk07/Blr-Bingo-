@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { BingoCard } from '@/components/bingo-card';
 import { BINGO_ENTRIES, generateBingoCard, checkWin } from '@/lib/bingo';
 import { useToast } from "@/hooks/use-toast";
-import { Users, Dices, PartyPopper, Crown } from 'lucide-react';
+import { Users, Dices, PartyPopper, Crown, Smartphone } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,30 +80,38 @@ export default function BingoPage() {
   
   // MOCK: System acts as host for testing purposes, calling a prompt every 2 seconds
   useEffect(() => {
-    if (isHost || winner) return; // Don't run if the user is the host or if there's already a winner
-
+    // Only run for the mock game (not a real host) and if there's no winner yet.
+    if (isHost || winner) return;
+  
     const interval = setInterval(() => {
-        if (availablePrompts.length === 0 || winner) { // Added winner check here too
-            clearInterval(interval);
-            return;
+      // Re-check winner status inside interval to stop it immediately
+      setWinner(currentWinner => {
+        if (currentWinner) {
+          clearInterval(interval);
+          return currentWinner;
         }
-        
+  
         setAvailablePrompts(prevAvail => {
-            if (prevAvail.length === 0) return prevAvail;
-            
-            const newPromptIndex = Math.floor(Math.random() * prevAvail.length);
-            const newPrompt = prevAvail[newPromptIndex];
-            
-            // In a real app, this update would come from the backend.
-            setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
-
-            return prevAvail.filter((_, index) => index !== newPromptIndex);
+          if (prevAvail.length === 0) {
+            clearInterval(interval);
+            return prevAvail;
+          }
+          
+          const newPromptIndex = Math.floor(Math.random() * prevAvail.length);
+          const newPrompt = prevAvail[newPromptIndex];
+          
+          setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
+  
+          return prevAvail.filter((_, index) => index !== newPromptIndex);
         });
 
+        return null; // No change to winner state
+      });
+  
     }, 2000);
-
+  
     return () => clearInterval(interval);
-  }, [isHost, availablePrompts, winner]);
+  }, [isHost, winner]);
 
 
   // Effect for players to check for a win whenever their card or prompts change
@@ -133,7 +141,7 @@ export default function BingoPage() {
               });
               // For the mock game, automatically declare the player as the winner
               if (!isHost) {
-                  handleDeclareWinner(playerName);
+                  setWinner(playerName);
               }
           }
       }
@@ -158,7 +166,6 @@ export default function BingoPage() {
       const newPrompt = prevAvail[newPromptIndex];
       
       // In a real app, the host would send an update to the backend.
-      // For mock, only host should call prompts
       if(isHost) {
         setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
       }
@@ -183,7 +190,7 @@ export default function BingoPage() {
           <Crown className="w-32 h-32 text-amber-400 absolute -top-24 -left-16 transform -rotate-12" />
           <PartyPopper className="w-24 h-24 text-primary animate-bounce" />
         </div>
-        <h1 className="font-headline text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-red-400 mt-4 animate-pulse">
+        <h1 className="font-headline text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mt-4 animate-pulse">
             BINGO!
         </h1>
         <p className="font-body text-3xl text-muted-foreground mt-4">
@@ -196,132 +203,140 @@ export default function BingoPage() {
     )
   }
 
-  if (isHost) {
-    return (
-         <main className="container mx-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center min-h-screen">
-             <header className="text-center mb-8">
-                <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">Host Controls</h1>
-                <p className="font-body text-muted-foreground mt-2 text-lg">You are the game master!</p>
-            </header>
-            <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl">
-                <Card className="shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-2xl">Game Control</CardTitle>
-                        <CardDescription>Click the button to call the next bingo prompt for all players.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-4">
-                        <div className="bg-muted p-4 rounded-lg shadow-inner min-h-[80px] flex items-center justify-center">
-                            <p className="text-2xl font-semibold text-foreground">{currentPrompt}</p>
-                        </div>
-                        <Button 
-                            size="lg" 
-                            className="w-full font-headline" 
-                            onClick={handleNextPrompt}
-                            disabled={availablePrompts.length === 0 || !!winner}
-                        >
-                           {winner ? 'Game Over' : 'Call Next Prompt'}
-                        </Button>
-                    </CardContent>
+  // Common wrapper for game screens to handle orientation lock
+  return (
+      <div className="landscape-only-bingo">
+          <div className="orientation-lock">
+                <Smartphone className="w-16 h-16 mb-4 animate-pulse" />
+                <h2 className="text-2xl font-bold font-headline">Please rotate your device</h2>
+                <p className="text-lg mt-2 font-body">This game is best played in landscape mode.</p>
+          </div>
+          <div className="main-game-content">
+              {isHost ? (
+                <main className="container mx-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center min-h-screen">
+                    <header className="text-center mb-8">
+                        <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">Host Controls</h1>
+                        <p className="font-body text-muted-foreground mt-2 text-lg">You are the game master!</p>
+                    </header>
+                    <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl">
+                        <Card className="shadow-lg">
+                            <CardHeader>
+                                <CardTitle className="font-headline text-2xl">Game Control</CardTitle>
+                                <CardDescription>Click the button to call the next bingo prompt for all players.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="text-center space-y-4">
+                                <div className="bg-muted p-4 rounded-lg shadow-inner min-h-[80px] flex items-center justify-center">
+                                    <p className="text-2xl font-semibold text-foreground">{currentPrompt}</p>
+                                </div>
+                                <Button 
+                                    size="lg" 
+                                    className="w-full font-headline" 
+                                    onClick={handleNextPrompt}
+                                    disabled={availablePrompts.length === 0 || !!winner}
+                                >
+                                {winner ? 'Game Over' : 'Call Next Prompt'}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                        <Card className="shadow-lg">
+                            <CardHeader>
+                                <CardTitle className="font-headline text-2xl">Game Status</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                            <div>
+                                    <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Users /> Players ({players.length})</h4>
+                                    <ul className="list-disc pl-5 mt-2 text-foreground">
+                                        {players.map(p => <li key={p.id}>{p.name} {p.id === playerId && '(You)'}</li>)}
+                                    </ul>
+                            </div>
+
+                            {bingoCallers.length > 0 && !winner && (
+                                <div className="bg-destructive/20 border-l-4 border-destructive p-4 rounded-r-lg">
+                                    <h4 className="font-bold text-destructive-foreground">Bingo Called!</h4>
+                                    <p className="text-sm text-muted-foreground mb-2">A player has a winning card. Verify and declare the winner!</p>
+                                    <div className="space-y-2">
+                                        {bingoCallers.map(name => (
+                                        <AlertDialog key={name}>
+                                            <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" className="w-full">Declare {name} as Winner!</Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                This will end the game for everyone and declare {name} as the winner. This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeclareWinner(name)}>
+                                                Confirm Winner
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                    <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Dices /> Called Prompts ({calledPrompts.length})</h4>
+                                    <div className="h-24 overflow-y-auto bg-muted/50 p-2 rounded-md mt-2 text-sm">
+                                        <ol className="list-decimal list-inside">
+                                        {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}`}>{p}</li>)}
+                                        </ol>
+                                    </div>
+                            </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </main>
+              ) : (
+                // Default view for Players
+                <main className="container mx-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center min-h-screen">
+                <header className="text-center mb-4">
+                    <h1 className="font-headline text-4xl sm:text-5xl font-bold text-foreground">Bengaluru Bingo</h1>
+                    <p className="font-body text-muted-foreground mt-2 text-lg">Match the squares to win!</p>
+                </header>
+
+                <Card className="w-full max-w-md mb-4 shadow-md">
+                        <CardContent className="p-4 text-center">
+                            <p className="font-body text-muted-foreground mb-1">Current Prompt:</p>
+                            <p className="font-headline text-xl font-bold text-primary truncate">{currentPrompt}</p>
+                        </CardContent>
                 </Card>
-                <Card className="shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-2xl">Game Status</CardTitle>
+
+                <div className="w-full max-w-2xl">
+                    {card.length > 0 ? (
+                        <BingoCard 
+                        card={card}
+                        markedSquares={markedSquares}
+                        onSquareClick={() => {}} // Clicking is disabled
+                        winningPattern={[]}
+                        />
+                    ) : (
+                        <div className="aspect-square w-full flex items-center justify-center bg-muted/50 rounded-md border">
+                        <p>Loading your card...</p>
+                        </div>
+                    )}
+                </div>
+
+                <Card className="w-full max-w-md mt-4 shadow-md">
+                    <CardHeader className="p-4">
+                        <CardTitle className="font-body text-center text-sm text-muted-foreground">Called Prompts ({calledPrompts.length})</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                       <div>
-                            <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Users /> Players ({players.length})</h4>
-                            <ul className="list-disc pl-5 mt-2 text-foreground">
-                                {players.map(p => <li key={p.id}>{p.name} {p.id === playerId && '(You)'}</li>)}
-                            </ul>
-                       </div>
-
-                       {bingoCallers.length > 0 && !winner && (
-                           <div className="bg-red-900/50 border-l-4 border-red-500 p-4 rounded-r-lg">
-                               <h4 className="font-bold text-red-200">Bingo Called!</h4>
-                               <p className="text-sm text-red-300 mb-2">A player has a winning card. Verify and declare the winner!</p>
-                               <div className="space-y-2">
-                                   {bingoCallers.map(name => (
-                                      <AlertDialog key={name}>
-                                        <AlertDialogTrigger asChild>
-                                          <Button variant="destructive" className="w-full">Declare {name} as Winner!</Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                              This will end the game for everyone and declare {name} as the winner. This action cannot be undone.
-                                            </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDeclareWinner(name)}>
-                                              Confirm Winner
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                   ))}
-                               </div>
-                           </div>
-                       )}
-
-                       <div>
-                            <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Dices /> Called Prompts ({calledPrompts.length})</h4>
-                            <div className="h-24 overflow-y-auto bg-muted/50 p-2 rounded-md mt-2 text-sm">
+                        <CardContent className="p-4 pt-0">
+                            <div className="h-24 overflow-y-auto bg-muted/50 p-2 rounded-md text-sm">
                                 <ol className="list-decimal list-inside">
-                                {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}`}>{p}</li>)}
+                                    {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}-player`}>{p}</li>)}
                                 </ol>
                             </div>
-                       </div>
-                    </CardContent>
+                        </CardContent>
                 </Card>
-            </div>
-         </main>
-    );
-  }
-
-  // Default view for Players
-  return (
-    <main className="container mx-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center min-h-screen">
-      <header className="text-center mb-4">
-        <h1 className="font-headline text-4xl sm:text-5xl font-bold text-foreground">Bengaluru Bingo</h1>
-        <p className="font-body text-muted-foreground mt-2 text-lg">Match the squares to win!</p>
-      </header>
-
-       <Card className="w-full max-w-md mb-4 shadow-md">
-            <CardContent className="p-4 text-center">
-                <p className="font-body text-muted-foreground mb-1">Current Prompt:</p>
-                <p className="font-headline text-xl font-bold text-primary truncate">{currentPrompt}</p>
-            </CardContent>
-       </Card>
-
-      <div className="w-full max-w-2xl">
-          {card.length > 0 ? (
-            <BingoCard 
-              card={card}
-              markedSquares={markedSquares}
-              onSquareClick={() => {}} // Clicking is disabled
-              winningPattern={[]}
-            />
-          ) : (
-            <div className="aspect-square w-full flex items-center justify-center bg-muted/50 rounded-md border">
-              <p>Loading your card...</p>
-            </div>
-          )}
+                </main>
+              )}
+          </div>
       </div>
-
-       <Card className="w-full max-w-md mt-4 shadow-md">
-           <CardHeader className="p-4">
-              <CardTitle className="font-body text-center text-sm text-muted-foreground">Called Prompts ({calledPrompts.length})</CardTitle>
-           </CardHeader>
-            <CardContent className="p-4 pt-0">
-                <div className="h-24 overflow-y-auto bg-muted/50 p-2 rounded-md text-sm">
-                    <ol className="list-decimal list-inside">
-                        {calledPrompts.slice().reverse().map((p, i) => <li key={`${p}-${i}`}>{p}</li>)}
-                    </ol>
-                </div>
-            </CardContent>
-       </Card>
-    </main>
   );
 }

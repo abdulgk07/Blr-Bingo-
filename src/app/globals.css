@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 100%;
-    --card: 240 10% 10%;
-    --card-foreground: 0 0% 100%;
+    --background: 48 96% 94%; /* LemonChiffon-ish */
+    --foreground: 240 10% 3.9%;
+    --card: 48 88% 88%; /* Lighter LemonChiffon */
+    --card-foreground: 240 10% 3.9%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 100%;
-    --primary: 0 84.2% 60.2%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 158 79% 51%; /* Aquamarine */
+    --primary-foreground: 240 10% 3.9%;
     --secondary: 240 5% 15%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 5% 15%;
     --muted-foreground: 240 5% 63%;
-    --accent: 0 84.2% 60.2%;
+    --accent: 31 100% 50%; /* Energetic Orange */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5% 20%;
     --input: 240 5% 20%;
-    --ring: 0 84.2% 60.2%;
+    --ring: 158 79% 51%;
     --radius: 0.5rem;
   }
 
@@ -33,19 +33,19 @@
     --card-foreground: 0 0% 100%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 100%;
-    --primary: 0 84.2% 60.2%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 158 79% 51%; /* Aquamarine */
+    --primary-foreground: 240 10% 3.9%;
     --secondary: 240 5% 15%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 5% 15%;
     --muted-foreground: 240 5% 63%;
-    --accent: 0 84.2% 60.2%;
+    --accent: 31 100% 50%; /* Energetic Orange */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5% 20%;
     --input: 240 5% 20%;
-    --ring: 0 84.2% 60.2%;
+    --ring: 158 79% 51%;
   }
 }
 
@@ -58,4 +58,29 @@
   }
 }
 
+/* Orientation Lock */
+.orientation-lock {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: hsl(var(--background));
+  z-index: 9999;
+  color: hsl(var(--foreground));
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (orientation: portrait) {
+  .landscape-only-bingo .orientation-lock {
+    display: flex;
+  }
+  .landscape-only-bingo .main-game-content {
+    display: none;
+  }
+}
     
