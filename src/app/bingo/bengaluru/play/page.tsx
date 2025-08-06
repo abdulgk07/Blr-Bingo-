@@ -41,6 +41,42 @@ const MOCK_GAME_STATE = {
   bingoCallers: [] as string[], // Players who have a winning pattern
 };
 
+const BACKGROUND_WORDS = [
+    "Peak Bengaluru Life",
+    "Tech & AI Culture",
+    "Family & Everyday Life",
+    "Workplace & Office Culture",
+    "Bollywood & Entertainment",
+    "Monsoons & Weather",
+    "General AI Clichés",
+    "Auto driver says, 'Cash only.'",
+    "Startup promises chai delivery by drone",
+    "The algorithm is blamed for everything"
+];
+
+function BackgroundWords() {
+    return (
+        <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden">
+            <div className="relative h-full w-full">
+                {BACKGROUND_WORDS.map((word, index) => (
+                    <span
+                        key={index}
+                        className="absolute font-headline text-8xl font-extrabold text-muted/30 whitespace-nowrap"
+                        style={{
+                            top: `${Math.random() * 90}%`,
+                            left: `${Math.random() * 70 - 20}%`,
+                            transform: `rotate(${Math.random() * 60 - 30}deg)`,
+                            opacity: '0.1',
+                        }}
+                    >
+                        {word}
+                    </span>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 export default function BingoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -181,6 +217,7 @@ export default function BingoPage() {
   if (winner) {
     return (
       <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen text-center bg-background">
+        <BackgroundWords />
         <div className="relative">
           <Crown className="w-32 h-32 text-amber-400 absolute -top-24 -left-16 transform -rotate-12" />
           <PartyPopper className="w-24 h-24 text-primary animate-bounce" />
@@ -206,7 +243,8 @@ export default function BingoPage() {
                 <h2 className="text-2xl font-bold font-headline">Please rotate your device</h2>
                 <p className="text-lg mt-2 font-body">This game is best played in landscape mode.</p>
           </div>
-          <div className="main-game-content">
+          <div className="main-game-content relative">
+              <BackgroundWords />
               {isHost ? (
                 <main className="container mx-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center min-h-screen">
                     <header className="text-center mb-8">
