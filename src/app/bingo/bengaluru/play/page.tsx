@@ -55,6 +55,29 @@ const BACKGROUND_WORDS = [
 ];
 
 function BackgroundWords() {
+    const [styles, setStyles] = useState<React.CSSProperties[]>([]);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+        if (isClient) {
+            const generatedStyles = BACKGROUND_WORDS.map(() => ({
+                top: `${Math.random() * 90}%`,
+                left: `${Math.random() * 70 - 20}%`,
+                transform: `rotate(${Math.random() * 60 - 30}deg)`,
+                opacity: '0.1',
+            }));
+            setStyles(generatedStyles);
+        }
+    }, [isClient]);
+
+    if (!isClient) {
+        return null;
+    }
+
     return (
         <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden">
             <div className="relative h-full w-full">
@@ -62,12 +85,7 @@ function BackgroundWords() {
                     <span
                         key={index}
                         className="absolute font-headline text-8xl font-extrabold text-muted/30 whitespace-nowrap"
-                        style={{
-                            top: `${Math.random() * 90}%`,
-                            left: `${Math.random() * 70 - 20}%`,
-                            transform: `rotate(${Math.random() * 60 - 30}deg)`,
-                            opacity: '0.1',
-                        }}
+                        style={styles[index]}
                     >
                         {word}
                     </span>
