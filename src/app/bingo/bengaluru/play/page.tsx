@@ -56,25 +56,18 @@ const BACKGROUND_WORDS = [
 
 function BackgroundWords() {
     const [styles, setStyles] = useState<React.CSSProperties[]>([]);
-    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        setIsClient(true);
+        const generatedStyles = BACKGROUND_WORDS.map(() => ({
+            top: `${Math.random() * 90}%`,
+            left: `${Math.random() * 90 - 20}%`,
+            transform: `rotate(${Math.random() * 60 - 30}deg)`,
+            opacity: '0.05',
+        }));
+        setStyles(generatedStyles);
     }, []);
 
-    useEffect(() => {
-        if (isClient) {
-            const generatedStyles = BACKGROUND_WORDS.map(() => ({
-                top: `${Math.random() * 90}%`,
-                left: `${Math.random() * 70 - 20}%`,
-                transform: `rotate(${Math.random() * 60 - 30}deg)`,
-                opacity: '0.1',
-            }));
-            setStyles(generatedStyles);
-        }
-    }, [isClient]);
-
-    if (!isClient) {
+    if (styles.length === 0) {
         return null;
     }
 
@@ -84,7 +77,7 @@ function BackgroundWords() {
                 {BACKGROUND_WORDS.map((word, index) => (
                     <span
                         key={index}
-                        className="absolute font-headline text-8xl font-extrabold text-muted/30 whitespace-nowrap"
+                        className="absolute font-headline text-6xl lg:text-8xl font-extrabold text-muted-foreground whitespace-nowrap"
                         style={styles[index]}
                     >
                         {word}
