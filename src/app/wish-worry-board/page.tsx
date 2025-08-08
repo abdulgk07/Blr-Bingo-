@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { BrainCircuit, Users, PlusCircle } from 'lucide-react';
+import { BrainCircuit, Users, PlusCircle, TestTube } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function WishWorryBoardEntryPage() {
@@ -35,6 +35,12 @@ export default function WishWorryBoardEntryPage() {
     setError('');
     router.push(`/wish-worry-board/${boardId}?userName=${encodeURIComponent(userName)}&userTitle=${encodeURIComponent(userTitle)}`);
   };
+
+  const handleTestBoard = () => {
+    const mockUserName = userName.trim() || "Tester";
+    const mockUserTitle = userTitle.trim() || "QA Engineer";
+    router.push(`/wish-worry-board/test-board?userName=${encodeURIComponent(mockUserName)}&userTitle=${encodeURIComponent(mockUserTitle)}`);
+  }
 
   return (
     <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
@@ -99,6 +105,17 @@ export default function WishWorryBoardEntryPage() {
           {error && (
             <p className="text-sm font-medium text-destructive text-center">{error}</p>
           )}
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t"></div>
+            <span className="flex-shrink mx-4 text-xs text-muted-foreground">FOR TESTING</span>
+            <div className="flex-grow border-t"></div>
+          </div>
+
+          <Button variant="outline" className="w-full" onClick={handleTestBoard}>
+            <TestTube className="w-4 h-4 mr-2" />
+            Test the Board
+          </Button>
 
         </CardContent>
       </Card>
