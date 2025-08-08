@@ -201,7 +201,7 @@ export default function WishWorryBoardPage() {
                                 <CardContent className="p-4">
                                     <p className="text-card-foreground">{note.text}</p>
                                     <p className="text-xs text-muted-foreground mt-2 text-right">- {note.author}, {note.authorTitle}</p>
-                                </CardContent>
+                                 </CardContent>
                             </Card>
                         ))}
                     </div>
@@ -215,7 +215,7 @@ export default function WishWorryBoardPage() {
                             <Textarea 
                                 placeholder="What are your concerns about AI?"
                                 value={newWorry}
-                                onChange={(e) => setNewWorry(e.targe.value)}
+                                onChange={(e) => setNewWorry(e.target.value)}
                                 disabled={!!isSubmitting}
                             />
                             <Button onClick={() => handleAddNote('worry')} variant="destructive" disabled={isSubmitting === 'worry'} className="w-full">
