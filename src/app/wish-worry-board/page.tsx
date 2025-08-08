@@ -23,7 +23,7 @@ export default function WishWorryBoardEntryPage() {
       return;
     }
     setError('');
-    const newBoardId = Math.random().toString(36).substring(2, 8);
+    const newBoardId = Math.floor(1000 + Math.random() * 9000).toString();
     router.push(`/wish-worry-board/${newBoardId}?userName=${encodeURIComponent(userName)}&userTitle=${encodeURIComponent(userTitle)}&isHost=true`);
   };
 
@@ -94,10 +94,11 @@ export default function WishWorryBoardEntryPage() {
             <TabsContent value="join" className="space-y-4 pt-4">
                 <Input
                     id="board-id"
-                    placeholder="Enter board ID"
+                    placeholder="Enter 4-digit board ID"
                     value={boardId}
                     onChange={(e) => setBoardId(e.target.value.toLowerCase())}
                     className="text-center"
+                    type="number"
                 />
                 <Button size="lg" className="w-full font-headline" onClick={handleJoinBoard}>Join Board</Button>
             </TabsContent>
@@ -123,5 +124,3 @@ export default function WishWorryBoardEntryPage() {
     </main>
   );
 }
-
-    
