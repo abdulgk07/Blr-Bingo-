@@ -1,0 +1,98 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "dynamicRoutes": [
+    {
+      "page": "/bingo/bengaluru/lobby/[gameId]",
+      "regex": "^/bingo/bengaluru/lobby/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPgameId": "nxtPgameId"
+      },
+      "namedRegex": "^/bingo/bengaluru/lobby/(?<nxtPgameId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/bingo/bengaluru/play/[gameId]",
+      "regex": "^/bingo/bengaluru/play/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPgameId": "nxtPgameId"
+      },
+      "namedRegex": "^/bingo/bengaluru/play/(?<nxtPgameId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/wish-worry-board/[boardId]",
+      "regex": "^/wish\\-worry\\-board/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPboardId": "nxtPboardId"
+      },
+      "namedRegex": "^/wish\\-worry\\-board/(?<nxtPboardId>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/bingo/bengaluru",
+      "regex": "^/bingo/bengaluru(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/bingo/bengaluru(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/games",
+      "regex": "^/games(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/games(?:/)?$"
+    },
+    {
+      "page": "/wish-worry-board",
+      "regex": "^/wish\\-worry\\-board(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/wish\\-worry\\-board(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "RSC",
+    "varyHeader": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch",
+    "prefetchHeader": "Next-Router-Prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "Next-Router-Segment-Prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  },
+  "rewrites": []
+}

@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/bingo/bengaluru/page": "app/bingo/bengaluru/page.js",
+  "/games/page": "app/games/page.js",
+  "/page": "app/page.js",
+  "/wish-worry-board/page": "app/wish-worry-board/page.js",
+  "/bingo/bengaluru/lobby/[gameId]/page": "app/bingo/bengaluru/lobby/[gameId]/page.js",
+  "/wish-worry-board/[boardId]/page": "app/wish-worry-board/[boardId]/page.js",
+  "/bingo/bengaluru/play/[gameId]/page": "app/bingo/bengaluru/play/[gameId]/page.js"
+}

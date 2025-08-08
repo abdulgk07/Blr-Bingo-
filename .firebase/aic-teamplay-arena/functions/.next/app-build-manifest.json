@@ -1,0 +1,85 @@
+{
+  "pages": {
+    "/_not-found/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/app/_not-found/page-7b137d85f9de4771.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/css/59c177341a45f07e.css",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/870-d23d51b9d2479e44.js",
+      "static/chunks/app/layout-f2e6cd446e484507.js"
+    ],
+    "/bingo/bengaluru/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/870-d23d51b9d2479e44.js",
+      "static/chunks/220-c14b86348535be3f.js",
+      "static/chunks/app/bingo/bengaluru/page-95c716c97361344c.js"
+    ],
+    "/games/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/870-d23d51b9d2479e44.js",
+      "static/chunks/app/games/page-80f9a77950adad22.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/app/page-f59e6329f0d02ad9.js"
+    ],
+    "/wish-worry-board/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/870-d23d51b9d2479e44.js",
+      "static/chunks/220-c14b86348535be3f.js",
+      "static/chunks/app/wish-worry-board/page-56461ee07601fca0.js"
+    ],
+    "/bingo/bengaluru/lobby/[gameId]/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/app/bingo/bengaluru/lobby/[gameId]/page-835c6340d7cdeb29.js"
+    ],
+    "/wish-worry-board/[boardId]/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/bc9e92e6-7314fbfa402e6eef.js",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/606-08cf269a397e59bd.js",
+      "static/chunks/app/wish-worry-board/[boardId]/page-5111753bdacdb0e8.js"
+    ],
+    "/bingo/bengaluru/play/[gameId]/page": [
+      "static/chunks/webpack-3a68ca926a023bb8.js",
+      "static/chunks/4bd1b696-4ad49f259c53d116.js",
+      "static/chunks/684-5efef8623fe9fb41.js",
+      "static/chunks/main-app-9f4f66c0efa5e0b9.js",
+      "static/chunks/511-a5499f9fa1884b4c.js",
+      "static/chunks/865-b319e80d6ea195a6.js",
+      "static/chunks/app/bingo/bengaluru/play/[gameId]/page-87212f826dcdf07d.js"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/bingo/bengaluru/page": "/bingo/bengaluru",
+  "/games/page": "/games",
+  "/page": "/",
+  "/wish-worry-board/page": "/wish-worry-board",
+  "/bingo/bengaluru/lobby/[gameId]/page": "/bingo/bengaluru/lobby/[gameId]",
+  "/wish-worry-board/[boardId]/page": "/wish-worry-board/[boardId]",
+  "/bingo/bengaluru/play/[gameId]/page": "/bingo/bengaluru/play/[gameId]"
+}

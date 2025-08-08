@@ -1,0 +1,1 @@
+self.__RSC_SERVER_MANIFEST="{\"node\":{\"40d928efbcb554ddb854a09536943ddf628e9bb372\":{\"workers\":{\"app/wish-worry-board/[boardId]/page\":{\"moduleId\":\"4480\",\"async\":false}},\"layer\":{\"app/wish-worry-board/[boardId]/page\":\"action-browser\"}}},\"edge\":{},\"encryptionKey\":\"process.env.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY\"}"
