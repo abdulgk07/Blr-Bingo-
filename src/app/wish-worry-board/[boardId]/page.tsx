@@ -9,31 +9,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { BrainCircuit, Lightbulb, AlertTriangle, Send, Loader2 } from 'lucide-react';
 import { consolidateWishesAndWorries } from '@/ai/flows/consolidate-wishes-worries';
 import { useToast } from "@/hooks/use-toast";
+import { db } from '@/lib/firebase';
+import { collection, addDoc, onSnapshot, query, where, orderBy, Timestamp } from 'firebase/firestore';
 
 
-// Mock data structure
+// Data structure for notes
 interface Note {
     id: string;
     text: string;
     author: string;
     authorTitle: string;
     style: React.CSSProperties;
+    type: 'wish' | 'worry';
+    createdAt: Timestamp;
 }
 
 interface Insights {
     wishesSummary: string;
     worriesSummary: string;
 }
-
-const MOCK_WISHES: Note[] = [
-    { id: 'w1', text: 'I hope AI can cure diseases faster.', author: 'Marie Curie', authorTitle: 'Physicist', style: { transform: 'rotate(-2deg)' } },
-    { id: 'w2', text: 'AI-powered personalized education for every child.', author: 'Sal Khan', authorTitle: 'Educator', style: { transform: 'rotate(1.5deg)' } },
-];
-const MOCK_WORRIES: Note[] = [
-    { id: 'r1', text: 'Worried about job displacement for creative roles.', author: 'Vincent van Gogh', authorTitle: 'Artist', style: { transform: 'rotate(2deg)' } },
-    { id: 'r2', text: 'The potential for AI to be used for autonomous weapons is scary.', author: 'Alfred Nobel', authorTitle: 'Inventor', style: { transform: 'rotate(-1deg)' } },
-    { id: 'r3', text: 'Privacy concerns with AI learning from our personal data.', author: 'George Orwell', authorTitle: 'Novelist', style: { transform: 'rotate(3deg)' } },
-];
 
 export default function WishWorryBoardPage() {
     const params = useParams();
@@ -45,50 +39,86 @@ export default function WishWorryBoardPage() {
     const userTitle = searchParams.get('userTitle') || 'Participant';
     const isHost = searchParams.get('isHost') === 'true';
 
-    const [wishes, setWishes] = useState<Note[]>(MOCK_WISHES);
-    const [worries, setWorries] = useState<Note[]>(MOCK_WORRIES);
+    const [wishes, setWishes] = useState<Note[]>([]);
+    const [worries, setWorries] = useState<Note[]>([]);
     const [newWish, setNewWish] = useState('');
     const [newWorry, setNewWorry] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(''); // 'wish' or 'worry'
     const [insights, setInsights] = useState<Insights | null>(null);
     const [isConsolidating, setIsConsolidating] = useState(false);
 
+    // Set up real-time listener for notes
+    useEffect(() => {
+        if (!boardId) return;
+
+        const q = query(
+            collection(db, 'wish-worry-boards', boardId, 'notes'),
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const allNotes: Note[] = [];
+            querySnapshot.forEach((doc) => {
+                allNotes.push({ id: doc.id, ...doc.data() } as Note);
+            });
+
+            setWishes(allNotes.filter(n => n.type === 'wish'));
+            setWorries(allNotes.filter(n => n.type === 'worry'));
+        }, (error) => {
+            console.error("Error fetching real-time notes:", error);
+            toast({
+                title: "Connection Error",
+                description: "Could not sync with the board. Please refresh.",
+                variant: "destructive"
+            });
+        });
+
+        return () => unsubscribe(); // Cleanup listener on component unmount
+    }, [boardId, toast]);
+
 
     const getRandomRotation = () => ({
         transform: `rotate(${Math.random() * 6 - 3}deg)`
     });
 
-    const handleAddNote = (type: 'wish' | 'worry') => {
-        if (type === 'wish' && !newWish.trim()) return;
-        if (type === 'worry' && !newWorry.trim()) return;
+    const handleAddNote = async (type: 'wish' | 'worry') => {
+        const text = type === 'wish' ? newWish : newWorry;
+        if (!text.trim()) return;
         
         setIsSubmitting(type);
 
-        // In a real app, this would send data to Firestore.
-        // Here, we simulate it with a timeout and update local state.
-        setTimeout(() => {
-            const newNote: Note = {
-                id: Math.random().toString(36).substring(2, 9),
-                text: type === 'wish' ? newWish : newWorry,
-                author: userName,
-                authorTitle: userTitle,
-                style: getRandomRotation()
-            };
+        const newNote = {
+            text: text.trim(),
+            author: userName,
+            authorTitle: userTitle,
+            style: getRandomRotation(),
+            type: type,
+            createdAt: Timestamp.now(),
+        };
 
+        try {
+            await addDoc(collection(db, 'wish-worry-boards', boardId, 'notes'), newNote);
+            
             if (type === 'wish') {
-                setWishes(prev => [newNote, ...prev]);
                 setNewWish('');
             } else {
-                setWorries(prev => [newNote, ...prev]);
                 setNewWorry('');
             }
+        } catch (error) {
+            console.error("Error adding note to Firestore:", error);
+            toast({
+                title: "Submission Failed",
+                description: "Your note could not be saved. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
             setIsSubmitting('');
-        }, 1000);
+        }
     };
 
     const handleConsolidate = async () => {
         setIsConsolidating(true);
-        setInsights(null); // Clear previous insights
+        setInsights(null); 
         
         try {
             const wishTexts = wishes.map(w => w.text);
