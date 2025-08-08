@@ -61,7 +61,7 @@ export default function LobbyPage() {
         // In a real app, the host would send a "start" event to the backend,
         // and the backend would push this navigation to all connected clients.
         // Here, we just navigate the host and assume others will follow.
-        router.push(`/bingo/bengaluru/play?gameId=${gameId}&isHost=true&playerName=${playerName}`);
+        router.push(`/bingo/bengaluru/play/${gameId}?isHost=true&playerName=${playerName}`);
     };
 
     return (

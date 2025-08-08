@@ -38,7 +38,8 @@ export default function BingoEntryPage() {
 
   const handleMockGame = () => {
     const mockPlayerName = playerName.trim() || 'Tester';
-    router.push(`/bingo/bengaluru/play?playerName=${mockPlayerName}&isHost=false`);
+    const mockGameId = 'MOCK';
+    router.push(`/bingo/bengaluru/play/${mockGameId}?playerName=${mockPlayerName}&isHost=false`);
   };
 
   return (
