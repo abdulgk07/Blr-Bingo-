@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { BrainCircuit, Lightbulb, AlertTriangle, Send, Loader2 } from 'lucide-react';
+import { consolidateWishesAndWorries } from '@/ai/flows/consolidate-wishes-worries';
+import { useToast } from "@/hooks/use-toast";
+
 
 // Mock data structure
 interface Note {
@@ -18,8 +21,8 @@ interface Note {
 }
 
 interface Insights {
-    wishes: string;
-    worries: string;
+    wishesSummary: string;
+    worriesSummary: string;
 }
 
 const MOCK_WISHES: Note[] = [
@@ -35,6 +38,7 @@ const MOCK_WORRIES: Note[] = [
 export default function WishWorryBoardPage() {
     const params = useParams();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const boardId = params.boardId as string;
     
     const userName = searchParams.get('userName') || 'Anonymous';
@@ -82,17 +86,40 @@ export default function WishWorryBoardPage() {
         }, 1000);
     };
 
-    const handleConsolidate = () => {
+    const handleConsolidate = async () => {
         setIsConsolidating(true);
-        // In a real app, you would gather all wishes and worries
-        // and send them to your AI Genkit flow.
-        setTimeout(() => {
-            setInsights({
-                wishes: "Personalized Learning (2), Medical Breakthroughs (1)",
-                worries: "Job Displacement (1), Privacy (1), Autonomous Weapons (1)"
+        setInsights(null); // Clear previous insights
+        
+        try {
+            const wishTexts = wishes.map(w => w.text);
+            const worryTexts = worries.map(w => w.text);
+
+            if(wishTexts.length === 0 && worryTexts.length === 0){
+                 toast({
+                    title: "Board is Empty",
+                    description: "Add some wishes or worries before consolidating.",
+                    variant: "destructive"
+                });
+                setIsConsolidating(false);
+                return;
+            }
+
+            const result = await consolidateWishesAndWorries({
+                wishes: wishTexts,
+                worries: worryTexts
             });
+            
+            setInsights(result);
+        } catch (error) {
+            console.error("Error consolidating insights:", error);
+            toast({
+                title: "AI Analysis Failed",
+                description: "Could not generate insights. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
             setIsConsolidating(false);
-        }, 2000);
+        }
     };
 
 
@@ -120,21 +147,31 @@ export default function WishWorryBoardPage() {
             )}
 
             {/* Display AI Insights - For all users once available */}
-            {insights && (
+            { (isConsolidating || insights) && (
                 <Card className="mb-8 shadow-md animate-in fade-in">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 font-headline"><BrainCircuit /> AI Insights</CardTitle>
                         <CardDescription>Top themes based on the team's input.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {isConsolidating ? (
+                             <div className="flex items-center gap-2 text-muted-foreground">
+                                <Loader2 className="w-4 h-4 animate-spin"/> Analyzing...
+                            </div>
+                        ) : insights && (
                         <div className="flex flex-wrap gap-4 text-sm">
-                            <div className="flex items-center gap-2 bg-green-100 text-green-800 p-2 rounded-md">
-                            <Lightbulb className="w-4 h-4"/> <strong>Wishes:</strong> {insights.wishes}
+                           {insights.wishesSummary && (
+                             <div className="flex items-center gap-2 bg-green-100 text-green-800 p-2 rounded-md">
+                                <Lightbulb className="w-4 h-4"/> <strong>Wishes:</strong> {insights.wishesSummary}
                             </div>
+                           )}
+                           {insights.worriesSummary && (
                             <div className="flex items-center gap-2 bg-red-100 text-red-800 p-2 rounded-md">
-                                <AlertTriangle className="w-4 h-4" /> <strong>Worries:</strong> {insights.worries}
+                                <AlertTriangle className="w-4 h-4" /> <strong>Worries:</strong> {insights.worriesSummary}
                             </div>
+                           )}
                         </div>
+                        )}
                     </CardContent>
                 </Card>
             )}
@@ -154,7 +191,7 @@ export default function WishWorryBoardPage() {
                                 disabled={!!isSubmitting}
                             />
                             <Button onClick={() => handleAddNote('wish')} disabled={isSubmitting === 'wish'} className="w-full bg-green-600 hover:bg-green-700">
-                                {isSubmitting === 'wish' ? 'Adding...' : <><Send className="mr-2 h-4 w-4"/> Add Wish</>}
+                                {isSubmitting === 'wish' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding...</> : <><Send className="mr-2 h-4 w-4"/> Add Wish</>}
                             </Button>
                         </CardContent>
                     </Card>
@@ -178,11 +215,11 @@ export default function WishWorryBoardPage() {
                             <Textarea 
                                 placeholder="What are your concerns about AI?"
                                 value={newWorry}
-                                onChange={(e) => setNewWorry(e.target.value)}
+                                onChange={(e) => setNewWorry(e.targe.value)}
                                 disabled={!!isSubmitting}
                             />
                             <Button onClick={() => handleAddNote('worry')} variant="destructive" disabled={isSubmitting === 'worry'} className="w-full">
-                                {isSubmitting === 'worry' ? 'Adding...' : <><Send className="mr-2 h-4 w-4"/> Add Worry</>}
+                                {isSubmitting === 'worry' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding...</> : <><Send className="mr-2 h-4 w-4"/> Add Worry</>}
                             </Button>
                         </CardContent>
                     </Card>
