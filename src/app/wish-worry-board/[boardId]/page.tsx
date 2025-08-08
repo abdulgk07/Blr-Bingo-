@@ -6,8 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { BrainCircuit, Lightbulb, AlertTriangle, Send } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { BrainCircuit, Lightbulb, AlertTriangle, Send, Loader2 } from 'lucide-react';
 
 // Mock data structure
 interface Note {
@@ -16,6 +15,11 @@ interface Note {
     author: string;
     authorTitle: string;
     style: React.CSSProperties;
+}
+
+interface Insights {
+    wishes: string;
+    worries: string;
 }
 
 const MOCK_WISHES: Note[] = [
@@ -35,12 +39,16 @@ export default function WishWorryBoardPage() {
     
     const userName = searchParams.get('userName') || 'Anonymous';
     const userTitle = searchParams.get('userTitle') || 'Participant';
+    const isHost = searchParams.get('isHost') === 'true';
 
     const [wishes, setWishes] = useState<Note[]>(MOCK_WISHES);
     const [worries, setWorries] = useState<Note[]>(MOCK_WORRIES);
     const [newWish, setNewWish] = useState('');
     const [newWorry, setNewWorry] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(''); // 'wish' or 'worry'
+    const [insights, setInsights] = useState<Insights | null>(null);
+    const [isConsolidating, setIsConsolidating] = useState(false);
+
 
     const getRandomRotation = () => ({
         transform: `rotate(${Math.random() * 6 - 3}deg)`
@@ -52,7 +60,7 @@ export default function WishWorryBoardPage() {
         
         setIsSubmitting(type);
 
-        // In a real app, this would send data to Firestore and the AI service.
+        // In a real app, this would send data to Firestore.
         // Here, we simulate it with a timeout and update local state.
         setTimeout(() => {
             const newNote: Note = {
@@ -74,6 +82,19 @@ export default function WishWorryBoardPage() {
         }, 1000);
     };
 
+    const handleConsolidate = () => {
+        setIsConsolidating(true);
+        // In a real app, you would gather all wishes and worries
+        // and send them to your AI Genkit flow.
+        setTimeout(() => {
+            setInsights({
+                wishes: "Personalized Learning (2), Medical Breakthroughs (1)",
+                worries: "Job Displacement (1), Privacy (1), Autonomous Weapons (1)"
+            });
+            setIsConsolidating(false);
+        }, 2000);
+    };
+
 
     return (
         <main className="container mx-auto p-4 sm:p-6 md:p-8 min-h-screen bg-muted/20">
@@ -82,23 +103,41 @@ export default function WishWorryBoardPage() {
                 <p className="font-body text-muted-foreground mt-2 text-lg">Board ID: <span className="font-mono bg-muted p-1 rounded">{boardId}</span></p>
             </header>
 
-            {/* AI Insights Section */}
-            <Card className="mb-8 shadow-md">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 font-headline"><BrainCircuit /> AI Insights</CardTitle>
-                    <CardDescription>Top themes based on the team's input. (This is a mock-up)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-2 bg-green-100 text-green-800 p-2 rounded-md">
-                           <Lightbulb className="w-4 h-4"/> <strong>Wishes:</strong> Personalized Learning (2), Medical Breakthroughs (1)
+            {/* AI Insights Section - Conditional on host action */}
+            {isHost && !insights && (
+                 <Card className="mb-8 shadow-md">
+                     <CardContent className="p-6 text-center">
+                         <Button size="lg" onClick={handleConsolidate} disabled={isConsolidating}>
+                             {isConsolidating ? (
+                                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Consolidating...</>
+                             ) : (
+                                 <><BrainCircuit className="mr-2 h-5 w-5" /> Consolidate & Show Insights</>
+                             )}
+                         </Button>
+                         <CardDescription className="mt-2">Click to analyze all entries and reveal themes.</CardDescription>
+                     </CardContent>
+                 </Card>
+            )}
+
+            {insights && (
+                <Card className="mb-8 shadow-md animate-in fade-in">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 font-headline"><BrainCircuit /> AI Insights</CardTitle>
+                        <CardDescription>Top themes based on the team's input.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="flex items-center gap-2 bg-green-100 text-green-800 p-2 rounded-md">
+                            <Lightbulb className="w-4 h-4"/> <strong>Wishes:</strong> {insights.wishes}
+                            </div>
+                            <div className="flex items-center gap-2 bg-red-100 text-red-800 p-2 rounded-md">
+                                <AlertTriangle className="w-4 h-4" /> <strong>Worries:</strong> {insights.worries}
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 bg-red-100 text-red-800 p-2 rounded-md">
-                            <AlertTriangle className="w-4 h-4" /> <strong>Worries:</strong> Job Displacement (1), Privacy (1), Autonomous Weapons (1)
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            )}
+
 
             {/* Wishes and Worries Columns */}
             <div className="grid md:grid-cols-2 gap-8">
@@ -113,7 +152,7 @@ export default function WishWorryBoardPage() {
                                 onChange={(e) => setNewWish(e.target.value)}
                                 disabled={!!isSubmitting}
                             />
-                            <Button onClick={() => handleAddNote('wish')} disabled={isSubmitting === 'wish'} className="w-full">
+                            <Button onClick={() => handleAddNote('wish')} disabled={isSubmitting === 'wish'} className="w-full bg-green-600 hover:bg-green-700">
                                 {isSubmitting === 'wish' ? 'Adding...' : <><Send className="mr-2 h-4 w-4"/> Add Wish</>}
                             </Button>
                         </CardContent>
@@ -161,3 +200,5 @@ export default function WishWorryBoardPage() {
         </main>
     );
 }
+
+    

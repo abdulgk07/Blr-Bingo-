@@ -39,7 +39,8 @@ export default function WishWorryBoardEntryPage() {
   const handleTestBoard = () => {
     const mockUserName = userName.trim() || "Tester";
     const mockUserTitle = userTitle.trim() || "QA Engineer";
-    router.push(`/wish-worry-board/test-board?userName=${encodeURIComponent(mockUserName)}&userTitle=${encodeURIComponent(mockUserTitle)}`);
+    // The test board will also act as a host to see the consolidate button
+    router.push(`/wish-worry-board/test-board?userName=${encodeURIComponent(mockUserName)}&userTitle=${encodeURIComponent(mockUserTitle)}&isHost=true`);
   }
 
   return (
@@ -114,7 +115,7 @@ export default function WishWorryBoardEntryPage() {
 
           <Button variant="outline" className="w-full" onClick={handleTestBoard}>
             <TestTube className="w-4 h-4 mr-2" />
-            Test the Board
+            Test the Board as Host
           </Button>
 
         </CardContent>
@@ -122,3 +123,5 @@ export default function WishWorryBoardEntryPage() {
     </main>
   );
 }
+
+    
