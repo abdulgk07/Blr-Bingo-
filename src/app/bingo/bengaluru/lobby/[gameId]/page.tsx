@@ -44,14 +44,16 @@ export default function LobbyPage() {
         }
         
         return () => clearTimeout(timer);
-    }, [playerName]);
+    }, [playerName, players]);
 
     const handleCopyGameId = () => {
-        navigator.clipboard.writeText(gameId);
-        toast({
-            title: "Game ID Copied!",
-            description: "The game ID has been copied to your clipboard.",
-        });
+        if (typeof window !== 'undefined') {
+            navigator.clipboard.writeText(gameId);
+            toast({
+                title: "Game ID Copied!",
+                description: "The game ID has been copied to your clipboard.",
+            });
+        }
     };
 
     const handleStartGame = () => {
@@ -59,7 +61,7 @@ export default function LobbyPage() {
         // In a real app, the host would send a "start" event to the backend,
         // and the backend would push this navigation to all connected clients.
         // Here, we just navigate the host and assume others will follow.
-        router.push(`/bingo/bengaluru/play?isHost=true&playerName=${playerName}`);
+        router.push(`/bingo/bengaluru/play?gameId=${gameId}&isHost=true&playerName=${playerName}`);
     };
 
     return (
@@ -107,4 +109,3 @@ export default function LobbyPage() {
         </main>
     );
 }
-

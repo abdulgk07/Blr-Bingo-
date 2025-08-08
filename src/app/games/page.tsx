@@ -11,12 +11,12 @@ const games = [
     { 
         city: 'Bengaluru', 
         activities: [
-            { name: 'Tech Bingo', description: 'A fun bingo game with AI and tech terms.', path: '/bingo/bengaluru', icon: Gamepad2 }
+            { name: 'Tech Bingo', description: 'A fun bingo game with AI and tech terms.', path: '/bingo/bengaluru', icon: Gamepad2 },
+            { name: 'AI Wish & Worry Board', description: 'A collaborative whiteboard to share your hopes and concerns about AI.', path: '/wish-worry-board', icon: BrainCircuit }
         ] 
     },
     { city: 'General', 
       activities: [
-            { name: 'AI Wish & Worry Board', description: 'A collaborative whiteboard to share your hopes and concerns about AI.', path: '/wish-worry-board', icon: BrainCircuit }
       ]
     },
     { city: 'Delhi', activities: [] },

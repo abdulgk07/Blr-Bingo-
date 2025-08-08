@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { Users, Gamepad, Dices, PlusCircle, TestTube } from 'lucide-react';
+import { Users, Dices, PlusCircle, TestTube } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function BingoEntryPage() {
@@ -22,7 +22,6 @@ export default function BingoEntryPage() {
     }
     setError('');
     const newGameId = Math.random().toString(36).substring(2, 6).toUpperCase();
-    console.log(`Creating game for ${playerName} with ID ${newGameId}`);
     
     router.push(`/bingo/bengaluru/lobby/${newGameId}?playerName=${playerName}&isHost=true`); 
   };
@@ -33,7 +32,6 @@ export default function BingoEntryPage() {
       return;
     }
     setError('');
-    console.log(`Player ${playerName} joining game ${gameCode}`);
     
     router.push(`/bingo/bengaluru/lobby/${gameCode}?playerName=${playerName}`);
   };
