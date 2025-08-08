@@ -103,15 +103,15 @@ export default function WishWorryBoardPage() {
                 <p className="font-body text-muted-foreground mt-2 text-lg">Board ID: <span className="font-mono bg-muted p-1 rounded">{boardId}</span></p>
             </header>
 
-            {/* AI Insights Section - Conditional on host action */}
-            {isHost && !insights && (
+            {/* AI Insights Section - For Host */}
+            {isHost && (
                  <Card className="mb-8 shadow-md">
                      <CardContent className="p-6 text-center">
                          <Button size="lg" onClick={handleConsolidate} disabled={isConsolidating}>
                              {isConsolidating ? (
                                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Consolidating...</>
                              ) : (
-                                 <><BrainCircuit className="mr-2 h-5 w-5" /> Consolidate & Show Insights</>
+                                 <><BrainCircuit className="mr-2 h-5 w-5" /> {insights ? 'Re-Consolidate Insights' : 'Consolidate & Show Insights'}</>
                              )}
                          </Button>
                          <CardDescription className="mt-2">Click to analyze all entries and reveal themes.</CardDescription>
@@ -119,6 +119,7 @@ export default function WishWorryBoardPage() {
                  </Card>
             )}
 
+            {/* Display AI Insights - For all users once available */}
             {insights && (
                 <Card className="mb-8 shadow-md animate-in fade-in">
                     <CardHeader>
@@ -200,5 +201,3 @@ export default function WishWorryBoardPage() {
         </main>
     );
 }
-
-    
