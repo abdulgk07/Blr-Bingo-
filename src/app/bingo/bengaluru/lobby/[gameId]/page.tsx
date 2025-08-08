@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Copy, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+export const dynamic = 'force-dynamic';
+
 // Mock player list for demonstration
 const MOCK_PLAYERS = [
     { id: 'player-1', name: 'Host' },

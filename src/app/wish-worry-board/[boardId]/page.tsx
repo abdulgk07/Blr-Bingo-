@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { db } from '@/lib/firebase';
 import { collection, addDoc, onSnapshot, query, where, orderBy, Timestamp } from 'firebase/firestore';
 
+export const dynamic = 'force-dynamic';
 
 // Data structure for notes
 interface Note {

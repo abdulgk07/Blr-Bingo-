@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+export const dynamic = 'force-dynamic';
 
 const FREE_SPACE_INDEX = 12;
 
