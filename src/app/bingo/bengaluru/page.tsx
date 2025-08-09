@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Users, Dices, PlusCircle, TestTube } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { db } from '@/lib/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export default function BingoEntryPage() {
   const router = useRouter();
@@ -15,7 +17,7 @@ export default function BingoEntryPage() {
   const [gameCode, setGameCode] = useState('');
   const [error, setError] = useState('');
 
-  const handleCreateGame = () => {
+  const handleCreateGame = async () => {
     if (!playerName.trim()) {
       setError("Please enter your name to create a game.");
       return;
@@ -23,17 +25,46 @@ export default function BingoEntryPage() {
     setError('');
     const newGameId = Math.random().toString(36).substring(2, 6).toUpperCase();
     
-    router.push(`/bingo/bengaluru/lobby/${newGameId}?playerName=${playerName}&isHost=true`); 
+    try {
+        await setDoc(doc(db, "bingo-games", newGameId), {
+            hostName: playerName,
+            status: 'lobby',
+            createdAt: new Date(),
+        });
+        await setDoc(doc(db, "bingo-games", newGameId, "players", playerName), {
+            name: playerName,
+            isHost: true,
+        });
+        router.push(`/bingo/bengaluru/lobby/${newGameId}?playerName=${playerName}&isHost=true`); 
+    } catch (e) {
+        console.error("Error creating game: ", e);
+        setError("Could not create the game. Please try again.");
+    }
   };
 
-  const handleJoinGame = () => {
+  const handleJoinGame = async () => {
     if (!playerName.trim() || !gameCode.trim()) {
       setError("Please enter your name and a game code to join.");
       return;
     }
     setError('');
     
-    router.push(`/bingo/bengaluru/lobby/${gameCode}?playerName=${playerName}`);
+    const gameRef = doc(db, "bingo-games", gameCode.toUpperCase());
+    try {
+        const gameSnap = await getDoc(gameRef);
+        if (gameSnap.exists()) {
+            await setDoc(doc(db, "bingo-games", gameCode.toUpperCase(), "players", playerName), {
+                name: playerName,
+                isHost: false,
+            });
+            router.push(`/bingo/bengaluru/lobby/${gameCode.toUpperCase()}?playerName=${playerName}`);
+        } else {
+            setError("Game not found. Please check the code and try again.");
+        }
+    } catch (e) {
+        console.error("Error joining game: ", e);
+        setError("Could not join the game. Please try again.");
+    }
   };
 
   const handleMockGame = () => {
@@ -64,7 +95,7 @@ export default function BingoEntryPage() {
         <CardContent className="space-y-4">
            <Input 
               id="player-name"
-              placeholder="Enter your name (optional for mock game)"
+              placeholder="Enter your name"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               className="text-center text-lg h-12"
@@ -84,8 +115,9 @@ export default function BingoEntryPage() {
                     id="game-code"
                     placeholder="Enter 4-digit game code"
                     value={gameCode}
-                    onChange={(e) => setGameCode(e.target.value)}
+                    onChange={(e) => setGameCode(e.target.value.toUpperCase())}
                     className="text-center"
+                    maxLength={4}
                 />
                 <Button size="lg" className="w-full font-headline" onClick={handleJoinGame}>Join Game</Button>
             </TabsContent>

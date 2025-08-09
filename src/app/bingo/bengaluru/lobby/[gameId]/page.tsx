@@ -7,14 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Copy, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 
 export const dynamic = 'force-dynamic';
 
-// Mock player list for demonstration
-const MOCK_PLAYERS = [
-    { id: 'player-1', name: 'Host' },
-    { id: 'player-2', name: 'Ravi' },
-];
+interface Player {
+    id: string;
+    name: string;
+    isHost: boolean;
+}
 
 export default function LobbyPage() {
     const router = useRouter();
@@ -26,47 +28,67 @@ export default function LobbyPage() {
     const playerName = searchParams.get('playerName') || 'Guest';
     const isHost = searchParams.get('isHost') === 'true';
 
-    const [players, setPlayers] = useState(MOCK_PLAYERS);
+    const [players, setPlayers] = useState<Player[]>([]);
+    const [hostName, setHostName] = useState('');
 
-    // In a real app, this would use a real-time listener (e.g., WebSockets or Firebase)
-    // to update the player list as people join.
+    // Listen for game status changes (e.g., when host starts the game)
     useEffect(() => {
-        // Simulate a new player joining after a delay
-        const timer = setTimeout(() => {
-            if (players.length < 5 && !players.find(p => p.name === 'Priya')) {
-                setPlayers(prev => [...prev, {id: 'player-3', name: 'Priya'}]);
+        if (!gameId) return;
+        const gameDocRef = doc(db, 'bingo-games', gameId);
+        const unsubscribe = onSnapshot(gameDocRef, (doc) => {
+            if (doc.exists()) {
+                const gameData = doc.data();
+                setHostName(gameData.hostName);
+                if (gameData.status === 'playing' && !isHost) {
+                    router.push(`/bingo/bengaluru/play/${gameId}?playerName=${playerName}`);
+                }
             }
-        }, 3000);
+        });
 
-        // If the user is a new player (not host), add them to the list
-        // This is a mock, a real backend would handle this
-        const playerExists = players.some(p => p.name === playerName);
-        if (!playerExists) {
-            // Assign a unique ID to prevent key collision errors
-            const uniquePlayerId = `${playerName}-${Math.random().toString(36).substring(2, 9)}`;
-            setPlayers(prev => [...prev, {id: uniquePlayerId, name: playerName}]);
-        }
-        
-        return () => clearTimeout(timer);
-    }, [playerName, players]);
+        return () => unsubscribe();
+    }, [gameId, router, isHost, playerName]);
+
+    // Listen for players joining/leaving
+    useEffect(() => {
+        if (!gameId) return;
+        const playersColRef = collection(db, 'bingo-games', gameId, 'players');
+        const unsubscribe = onSnapshot(playersColRef, (snapshot) => {
+            const playersData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as Player));
+            setPlayers(playersData);
+        });
+
+        return () => unsubscribe();
+    }, [gameId]);
+
 
     const handleCopyGameId = () => {
-        if (typeof window !== 'undefined') {
-            navigator.clipboard.writeText(gameId);
+        const inviteUrl = `${window.location.origin}/bingo/bengaluru?join=${gameId}`;
+        navigator.clipboard.writeText(gameId);
+        toast({
+            title: "Game ID Copied!",
+            description: `You can share this ID with your friends.`,
+        });
+    };
+
+    const handleStartGame = async () => {
+        const gameDocRef = doc(db, 'bingo-games', gameId);
+        try {
+            await updateDoc(gameDocRef, { status: 'playing' });
+            router.push(`/bingo/bengaluru/play/${gameId}?playerName=${playerName}&isHost=true`);
+        } catch (error) {
+            console.error("Error starting game: ", error);
             toast({
-                title: "Game ID Copied!",
-                description: "The game ID has been copied to your clipboard.",
+                title: "Error",
+                description: "Could not start the game. Please try again.",
+                variant: "destructive"
             });
         }
     };
 
-    const handleStartGame = () => {
-        // Navigate all players to the game screen.
-        // In a real app, the host would send a "start" event to the backend,
-        // and the backend would push this navigation to all connected clients.
-        // Here, we just navigate the host and assume others will follow.
-        router.push(`/bingo/bengaluru/play/${gameId}?isHost=true&playerName=${playerName}`);
-    };
+    const getHost = () => players.find(p => p.isHost);
 
     return (
         <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
@@ -93,19 +115,19 @@ export default function LobbyPage() {
                         <div className="h-40 overflow-y-auto bg-muted/50 p-3 rounded-md space-y-2">
                             {players.map(p => (
                                 <div key={p.id} className="bg-card p-2 rounded-md shadow-sm text-left px-4">
-                                    {p.name} {p.id === 'player-1' && <span className="font-bold text-primary">(Host)</span>}
+                                    {p.name} {p.isHost && <span className="font-bold text-primary"> (Host)</span>}
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {isHost ? (
-                        <Button size="lg" className="w-full font-headline text-xl" onClick={handleStartGame}>
-                            Start Game for Everyone
+                        <Button size="lg" className="w-full font-headline text-xl" onClick={handleStartGame} disabled={players.length < 2}>
+                            {players.length < 2 ? "Waiting for players..." : "Start Game for Everyone"}
                         </Button>
                     ) : (
                         <p className="text-muted-foreground animate-pulse">
-                            Waiting for the host to start the game...
+                            Waiting for {getHost()?.name || 'the host'} to start the game...
                         </p>
                     )}
                 </CardContent>

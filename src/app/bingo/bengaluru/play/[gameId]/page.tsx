@@ -6,7 +6,7 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BingoCard } from '@/components/bingo-card';
-import { BINGO_ENTRIES, generateBingoCard, checkWin } from '@/lib/bingo';
+import { BINGO_ENTRIES, generateBingoCard } from '@/lib/bingo';
 import { useToast } from "@/hooks/use-toast";
 import { Users, Dices, PartyPopper, Crown, Smartphone } from 'lucide-react';
 import {
@@ -20,27 +20,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { db } from '@/lib/firebase';
+import { doc, onSnapshot, updateDoc, setDoc, getDoc, collection } from 'firebase/firestore';
 
 export const dynamic = 'force-dynamic';
 
 const FREE_SPACE_INDEX = 12;
-
-// Mock game state for demonstration purposes
-// In a real app, this would come from a backend like Firebase
-const MOCK_GAME_STATE = {
-  id: 'ABCD',
-  hostId: 'player-1',
-  players: [
-    { id: 'player-1', name: 'Host' },
-    { id: 'player-2', name: 'Ravi' },
-    { id: 'player-3', name: 'Priya' },
-  ],
-  calledPrompts: [] as string[],
-  availablePrompts: BINGO_ENTRIES,
-  winner: null as string | null,
-  status: 'playing', // 'waiting', 'playing', 'finished'
-  bingoCallers: [] as string[], // Players who have a winning pattern
-};
 
 const BACKGROUND_WORDS = [
     "Peak Bengaluru Life",
@@ -55,10 +40,16 @@ const BACKGROUND_WORDS = [
     "The algorithm is blamed for everything"
 ];
 
+interface Player {
+    id: string;
+    name: string;
+}
+
 function BackgroundWords() {
     const [styles, setStyles] = useState<React.CSSProperties[]>([]);
 
     useEffect(() => {
+        // This should only run on the client
         const generatedStyles = BACKGROUND_WORDS.map(() => ({
             top: `${Math.random() * 90}%`,
             left: `${Math.random() * 90 - 20}%`,
@@ -96,72 +87,94 @@ export default function BingoPage() {
   const gameId = params.gameId as string;
   const isHost = searchParams.get('isHost') === 'true';
   const playerName = searchParams.get('playerName') || 'Player';
-  // In a real app, the player ID would be a unique ID from the backend/auth
-  const playerId = isHost ? 'player-1' : playerName; 
 
   const [card, setCard] = useState<string[]>([]);
   const [markedSquares, setMarkedSquares] = useState<boolean[]>([]);
   const [calledPrompts, setCalledPrompts] = useState<string[]>([]);
   const [availablePrompts, setAvailablePrompts] = useState<string[]>([]);
   const [winner, setWinner] = useState<string | null>(null);
-  const [players, setPlayers] = useState<{id: string, name: string}[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [bingoCallers, setBingoCallers] = useState<string[]>([]);
 
   const { toast } = useToast();
 
-  // MOCK: Initialize game state from mock data
-  useEffect(() => {
-    const game = MOCK_GAME_STATE;
-    setPlayers(game.players);
+    // Initialize/Sync game state from Firestore
+    useEffect(() => {
+        if (!gameId || gameId === 'MOCK') return;
 
-    // All players (including host for dev purposes) get a card, but UI will differ
-    const newCard = generateBingoCard(BINGO_ENTRIES);
-    setCard(newCard);
+        const gameDocRef = doc(db, 'bingo-games', gameId);
 
-    const newMarkedSquares = Array(25).fill(false);
-    newMarkedSquares[FREE_SPACE_INDEX] = true;
-    setMarkedSquares(newMarkedSquares);
-    
-    setCalledPrompts(game.calledPrompts);
-    setAvailablePrompts(game.availablePrompts);
-    setWinner(game.winner);
+        const unsubscribe = onSnapshot(gameDocRef, async (docSnap) => {
+            if (docSnap.exists()) {
+                const gameData = docSnap.data();
+                setCalledPrompts(gameData.calledPrompts || []);
+                setWinner(gameData.winner || null);
+                setBingoCallers(gameData.bingoCallers || []);
 
-  }, []);
-  
-  // MOCK: System acts as host for testing purposes, calling a prompt every 2 seconds
-  useEffect(() => {
-    // Only run for the mock game (not a real host) and if there's no winner yet.
-    if (isHost) return;
+                if (isHost && !gameData.availablePrompts) {
+                    await updateDoc(gameDocRef, { availablePrompts: BINGO_ENTRIES });
+                }
+                setAvailablePrompts(gameData.availablePrompts || BINGO_ENTRIES);
 
-    const interval = setInterval(() => {
-        if (winner) {
-            clearInterval(interval);
-            return;
-        }
-  
-        setAvailablePrompts(prevAvail => {
-          if (prevAvail.length === 0) {
-            clearInterval(interval);
-            return prevAvail;
-          }
-          
-          const newPromptIndex = Math.floor(Math.random() * prevAvail.length);
-          const newPrompt = prevAvail[newPromptIndex];
-          
-          setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
-  
-          return prevAvail.filter((_, index) => index !== newPromptIndex);
+                // Player card setup
+                const playerDocRef = doc(db, 'bingo-games', gameId, 'players', playerName);
+                const playerDocSnap = await getDoc(playerDocRef);
+                if (playerDocSnap.exists() && playerDocSnap.data().card) {
+                    setCard(playerDocSnap.data().card);
+                } else {
+                    const newCard = generateBingoCard(BINGO_ENTRIES);
+                    setCard(newCard);
+                    await setDoc(playerDocRef, { card: newCard }, { merge: true });
+                }
+            } else {
+                // Handle game not found
+                toast({title: "Game not found!", variant: "destructive"});
+                router.push('/bingo/bengaluru');
+            }
         });
-  
-    }, 2000);
-  
-    return () => clearInterval(interval);
-  }, [isHost, winner]);
 
+        const playersColRef = collection(db, 'bingo-games', gameId, 'players');
+        const unsubscribePlayers = onSnapshot(playersColRef, (snapshot) => {
+             const playersData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                name: doc.data().name
+            }));
+            setPlayers(playersData);
+        });
 
-  // Effect for players to check for a win whenever their card or prompts change
-  const handlePlayerWinCheck = useCallback(() => {
-    if (winner || isHost || card.length === 0) return;
+        return () => {
+            unsubscribe();
+            unsubscribePlayers();
+        };
+
+    }, [gameId, isHost, playerName, router, toast]);
+
+    // Initialize marked squares once card is set
+    useEffect(() => {
+        if (card.length > 0) {
+            const newMarkedSquares = Array(25).fill(false);
+            newMarkedSquares[FREE_SPACE_INDEX] = true; // Free space
+            setMarkedSquares(newMarkedSquares);
+        }
+    }, [card]);
+
+    const checkWin = useCallback((currentMarkedSquares: boolean[]) => {
+        const lines = [
+            [0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], [15, 16, 17, 18, 19], [20, 21, 22, 23, 24],
+            [0, 5, 10, 15, 20], [1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24],
+            [0, 6, 12, 18, 24], [4, 8, 12, 16, 20],
+        ];
+        for (const line of lines) {
+            if (line.every(index => currentMarkedSquares[index])) {
+                return true;
+            }
+        }
+        return false;
+    }, []);
+
+  // Effect for players to check for a win whenever prompts change
+  const handlePlayerWinCheck = useCallback(async () => {
+    if (winner || isHost || card.length === 0 || gameId === 'MOCK') return;
 
     const newMarked = [...markedSquares];
     let changed = false;
@@ -175,54 +188,88 @@ export default function BingoPage() {
     if (changed) {
       setMarkedSquares(newMarked);
       if (checkWin(newMarked)) {
-          // Player has bingo! Let the host know.
-          // In a real app, this would be an event sent to the backend.
-          // For the mock, we just update the local state.
           if (!bingoCallers.includes(playerName)) {
-              setBingoCallers(prev => [...prev, playerName]);
+              const gameDocRef = doc(db, 'bingo-games', gameId);
+              await updateDoc(gameDocRef, {
+                  bingoCallers: [...bingoCallers, playerName]
+              });
               toast({
                   title: "BINGO!",
                   description: "Waiting for the host to verify your win.",
               });
-              // For the mock game, automatically declare the player as the winner
-              if (!isHost) {
-                  setWinner(playerName);
-              }
           }
       }
     }
-  }, [calledPrompts, card, isHost, winner, markedSquares, playerName, toast, bingoCallers]);
+  }, [calledPrompts, card, isHost, winner, markedSquares, playerName, toast, bingoCallers, gameId, checkWin]);
 
   useEffect(() => {
     handlePlayerWinCheck();
   }, [calledPrompts, handlePlayerWinCheck]);
 
   // Handler for the HOST to call the next prompt manually
-  const handleNextPrompt = () => {
-    if (winner) return;
+  const handleNextPrompt = async () => {
+    if (winner || gameId === 'MOCK' || !isHost) return;
 
-    setAvailablePrompts(prevAvail => {
-      if (prevAvail.length === 0) {
+    if (availablePrompts.length === 0) {
         toast({ title: "No more prompts!", variant: "destructive" });
-        return prevAvail;
-      }
-      
-      const newPromptIndex = Math.floor(Math.random() * prevAvail.length);
-      const newPrompt = prevAvail[newPromptIndex];
-      
-      // In a real app, the host would send an update to the backend.
-      if(isHost) {
-        setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
-      }
-      return prevAvail.filter((_, index) => index !== newPromptIndex);
+        return;
+    }
+    
+    const newPromptIndex = Math.floor(Math.random() * availablePrompts.length);
+    const newPrompt = availablePrompts[newPromptIndex];
+    const newAvailablePrompts = availablePrompts.filter((_, index) => index !== newPromptIndex);
+    const newCalledPrompts = [...calledPrompts, newPrompt];
+
+    const gameDocRef = doc(db, 'bingo-games', gameId);
+    await updateDoc(gameDocRef, {
+        calledPrompts: newCalledPrompts,
+        availablePrompts: newAvailablePrompts
     });
   };
 
   // Handler for the HOST to declare a winner
-  const handleDeclareWinner = (winnerName: string) => {
-      // In a real app, this would update the game state for all players.
-      setWinner(winnerName);
+  const handleDeclareWinner = async (winnerName: string) => {
+      if(gameId === 'MOCK') {
+        setWinner(winnerName);
+        return;
+      }
+      const gameDocRef = doc(db, 'bingo-games', gameId);
+      await updateDoc(gameDocRef, { winner: winnerName, status: 'finished' });
   };
+  
+  // MOCK: System acts as host for testing purposes
+  useEffect(() => {
+    if (gameId !== 'MOCK') return;
+    const interval = setInterval(() => {
+        if (winner) {
+            clearInterval(interval);
+            return;
+        }
+        setAvailablePrompts(prevAvail => {
+          if (prevAvail.length === 0) {
+            clearInterval(interval);
+            return prevAvail;
+          }
+          const newPromptIndex = Math.floor(Math.random() * prevAvail.length);
+          const newPrompt = prevAvail[newPromptIndex];
+          setCalledPrompts(prevCalled => [...prevCalled, newPrompt]);
+          return prevAvail.filter((_, index) => index !== newPromptIndex);
+        });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [gameId, winner]);
+  
+  // MOCK: Initialize mock game state
+  useEffect(() => {
+    if (gameId !== 'MOCK') return;
+    setPlayers([{ id: 'player-1', name: 'Host' }, { id: 'player-2', name: 'Ravi' }]);
+    const newCard = generateBingoCard(BINGO_ENTRIES);
+    setCard(newCard);
+    const newMarkedSquares = Array(25).fill(false);
+    newMarkedSquares[FREE_SPACE_INDEX] = true;
+    setMarkedSquares(newMarkedSquares);
+    setAvailablePrompts(BINGO_ENTRIES);
+  }, [gameId]);
 
   const currentPrompt = calledPrompts.length > 0 ? calledPrompts[calledPrompts.length - 1] : "Waiting for host to start...";
 
@@ -249,7 +296,6 @@ export default function BingoPage() {
     )
   }
 
-  // Common wrapper for game screens to handle orientation lock
   return (
       <div className="landscape-only-bingo">
           <div className="orientation-lock">
@@ -293,7 +339,7 @@ export default function BingoPage() {
                             <div>
                                     <h4 className="font-bold text-muted-foreground flex items-center gap-2"><Users /> Players ({players.length})</h4>
                                     <ul className="list-disc pl-5 mt-2 text-foreground">
-                                        {players.map(p => <li key={p.id}>{p.name} {p.id === playerId && '(You)'}</li>)}
+                                        {players.map(p => <li key={p.id}>{p.name} {p.name === playerName && '(You)'}</li>)}
                                     </ul>
                             </div>
 
@@ -348,7 +394,7 @@ export default function BingoPage() {
                 </header>
 
                 <Card className="w-full max-w-md mb-4 shadow-md">
-                    <CardContent className="p-4 text-center flex flex-col justify-center min-h-[110px]">
+                     <CardContent className="p-4 text-center flex flex-col justify-center min-h-[110px]">
                         <p className="font-body text-muted-foreground mb-1">Current Prompt:</p>
                         <p className="font-headline text-xl font-bold text-accent break-words">{currentPrompt}</p>
                     </CardContent>
