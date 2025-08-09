@@ -42,7 +42,9 @@ export default function LobbyPage() {
         // This is a mock, a real backend would handle this
         const playerExists = players.some(p => p.name === playerName);
         if (!playerExists) {
-            setPlayers(prev => [...prev, {id: playerName, name: playerName}]);
+            // Assign a unique ID to prevent key collision errors
+            const uniquePlayerId = `${playerName}-${Math.random().toString(36).substring(2, 9)}`;
+            setPlayers(prev => [...prev, {id: uniquePlayerId, name: playerName}]);
         }
         
         return () => clearTimeout(timer);
