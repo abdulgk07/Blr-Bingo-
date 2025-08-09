@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -21,6 +22,8 @@ const nextConfig: NextConfig = {
   env: {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   },
+  // Fix static file serving on Render
+  poweredByHeader: false,
 };
 
 export default nextConfig;
