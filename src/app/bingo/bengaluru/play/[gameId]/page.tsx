@@ -348,10 +348,10 @@ export default function BingoPage() {
                 </header>
 
                 <Card className="w-full max-w-md mb-4 shadow-md">
-                        <CardContent className="p-4 text-center">
-                            <p className="font-body text-muted-foreground mb-1">Current Prompt:</p>
-                            <p className="font-headline text-xl font-bold text-accent truncate">{currentPrompt}</p>
-                        </CardContent>
+                    <CardContent className="p-4 text-center flex flex-col justify-center min-h-[110px]">
+                        <p className="font-body text-muted-foreground mb-1">Current Prompt:</p>
+                        <p className="font-headline text-xl font-bold text-accent break-words">{currentPrompt}</p>
+                    </CardContent>
                 </Card>
 
                 <div className="w-full max-w-2xl">
