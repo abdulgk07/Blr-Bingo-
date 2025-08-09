@@ -44,7 +44,8 @@ export default function WishWorryBoardPage() {
     const [worries, setWorries] = useState<Note[]>([]);
     const [newWish, setNewWish] = useState('');
     const [newWorry, setNewWorry] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(''); // 'wish' or 'worry'
+    const [isSubmittingWish, setIsSubmittingWish] = useState(false);
+    const [isSubmittingWorry, setIsSubmittingWorry] = useState(false);
     const [insights, setInsights] = useState<Insights | null>(null);
     const [isConsolidating, setIsConsolidating] = useState(false);
 
@@ -86,7 +87,11 @@ export default function WishWorryBoardPage() {
         const text = type === 'wish' ? newWish : newWorry;
         if (!text.trim()) return;
         
-        setIsSubmitting(type);
+        if (type === 'wish') {
+            setIsSubmittingWish(true);
+        } else {
+            setIsSubmittingWorry(true);
+        }
 
         const newNote = {
             text: text.trim(),
@@ -113,7 +118,11 @@ export default function WishWorryBoardPage() {
                 variant: "destructive"
             });
         } finally {
-            setIsSubmitting('');
+            if (type === 'wish') {
+                setIsSubmittingWish(false);
+            } else {
+                setIsSubmittingWorry(false);
+            }
         }
     };
 
@@ -157,7 +166,7 @@ export default function WishWorryBoardPage() {
     return (
         <main className="container mx-auto p-4 sm:p-6 md:p-8 min-h-screen bg-muted/20">
             <header className="text-center mb-8">
-                <h1 className="font-headline text-4xl sm:text-5xl font-bold text-foreground">AI Wish & Worry Board</h1>
+                <h1 className="font-headline text-4xl sm:text-5xl font-bold text-foreground">AI Wish &amp; Worry Board</h1>
                 <p className="font-body text-muted-foreground mt-2 text-lg">Board ID: <span className="font-mono bg-muted p-1 rounded">{boardId}</span></p>
             </header>
 
@@ -169,7 +178,7 @@ export default function WishWorryBoardPage() {
                              {isConsolidating ? (
                                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Consolidating...</>
                              ) : (
-                                 <><BrainCircuit className="mr-2 h-5 w-5" /> {insights ? 'Re-Consolidate Insights' : 'Consolidate & Show Insights'}</>
+                                 <><BrainCircuit className="mr-2 h-5 w-5" /> {insights ? 'Re-Consolidate Insights' : 'Consolidate &amp; Show Insights'}</>
                              )}
                          </Button>
                          <CardDescription className="mt-2">Click to analyze all entries and reveal themes.</CardDescription>
@@ -219,10 +228,10 @@ export default function WishWorryBoardPage() {
                                 placeholder="What are you hopeful about with AI?"
                                 value={newWish}
                                 onChange={(e) => setNewWish(e.target.value)}
-                                disabled={!!isSubmitting}
+                                disabled={isSubmittingWish}
                             />
-                            <Button onClick={() => handleAddNote('wish')} disabled={isSubmitting === 'wish'} className="w-full bg-green-600 hover:bg-green-700">
-                                {isSubmitting === 'wish' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding...</> : <><Send className="mr-2 h-4 w-4"/> Add Wish</>}
+                            <Button onClick={() => handleAddNote('wish')} disabled={isSubmittingWish} className="w-full bg-green-600 hover:bg-green-700">
+                                {isSubmittingWish ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding...</> : <><Send className="mr-2 h-4 w-4"/> Add Wish</>}
                             </Button>
                         </CardContent>
                     </Card>
@@ -247,10 +256,10 @@ export default function WishWorryBoardPage() {
                                 placeholder="What are your concerns about AI?"
                                 value={newWorry}
                                 onChange={(e) => setNewWorry(e.target.value)}
-                                disabled={!!isSubmitting}
+                                disabled={isSubmittingWorry}
                             />
-                            <Button onClick={() => handleAddNote('worry')} variant="destructive" disabled={isSubmitting === 'worry'} className="w-full">
-                                {isSubmitting === 'worry' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding...</> : <><Send className="mr-2 h-4 w-4"/> Add Worry</>}
+                            <Button onClick={() => handleAddNote('worry')} variant="destructive" disabled={isSubmittingWorry} className="w-full">
+                                {isSubmittingWorry ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding...</> : <><Send className="mr-2 h-4 w-4"/> Add Worry</>}
                             </Button>
                         </CardContent>
                     </Card>
