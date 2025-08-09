@@ -10,7 +10,7 @@ import { BrainCircuit, Lightbulb, AlertTriangle, Send, Loader2 } from 'lucide-re
 import { consolidateWishesAndWorries } from '@/ai/flows/consolidate-wishes-worries';
 import { useToast } from "@/hooks/use-toast";
 import { db } from '@/lib/firebase';
-import { collection, addDoc, onSnapshot, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 
 export const dynamic = 'force-dynamic';
 

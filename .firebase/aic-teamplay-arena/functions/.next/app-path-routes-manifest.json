@@ -1,6 +1,6 @@
 {
-  "/favicon.ico/route": "/favicon.ico",
   "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
   "/bingo/bengaluru/page": "/bingo/bengaluru",
   "/games/page": "/games",
   "/page": "/",
