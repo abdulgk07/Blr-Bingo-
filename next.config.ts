@@ -19,9 +19,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-  },
+
   // Fix static file serving on Render
   poweredByHeader: false,
 };
