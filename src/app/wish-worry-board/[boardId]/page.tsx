@@ -17,10 +17,13 @@ import {
   AlertTriangle,
   Send,
   Loader2,
+  Key,
 } from "lucide-react";
 import { consolidateWishesAndWorries } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { boardStorage, type Note as StorageNote } from "@/lib/storage";
+import { useApiKey } from "@/contexts/ApiKeyContext";
+import { ApiKeyInput } from "@/components/api-key-input";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +41,7 @@ export default function WishWorryBoardPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { isApiKeySet } = useApiKey();
   const boardId = params.boardId as string;
 
   const userName = searchParams.get("userName") || "Anonymous";
@@ -98,9 +102,10 @@ export default function WishWorryBoardPage() {
     try {
       boardStorage.addNote(boardId, {
         text: text.trim(),
+        type,
         author: userName,
         authorTitle: userTitle,
-        type: type,
+        timestamp: new Date(),
       });
 
       if (type === "wish") {
@@ -111,8 +116,8 @@ export default function WishWorryBoardPage() {
     } catch (error) {
       console.error("Error adding note:", error);
       toast({
-        title: "Submission Failed",
-        description: "Your note could not be saved. Please try again.",
+        title: "Error",
+        description: "Could not add your note. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -125,6 +130,15 @@ export default function WishWorryBoardPage() {
   };
 
   const handleConsolidate = async () => {
+    if (!isApiKeySet) {
+      toast({
+        title: "API Key Required",
+        description: "You need to set your OpenAI API key to use AI features.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsConsolidating(true);
     setInsights(null);
 
@@ -159,6 +173,43 @@ export default function WishWorryBoardPage() {
       setIsConsolidating(false);
     }
   };
+
+  // If host doesn't have API key, show API key input
+  if (isHost && !isApiKeySet) {
+    return (
+      <main className="container mx-auto p-4 sm:p-6 md:p-8 min-h-screen bg-muted/20">
+        <header className="text-center mb-8">
+          <h1 className="font-headline text-4xl sm:text-5xl font-bold text-foreground">
+            AI Wish &amp; Worry Board
+          </h1>
+          <p className="font-body text-muted-foreground mt-2 text-lg">
+            Board ID:{" "}
+            <span className="font-mono bg-muted p-1 rounded">{boardId}</span>
+          </p>
+        </header>
+
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card className="shadow-lg">
+            <CardHeader className="text-center">
+              <div className="inline-block p-4 bg-orange-100 rounded-full mb-4">
+                <Key className="w-12 h-12 text-orange-600" />
+              </div>
+              <CardTitle className="font-headline text-2xl">
+                API Key Required
+              </CardTitle>
+              <CardDescription>
+                As the host, you need to provide your OpenAI API key to use AI
+                consolidation features.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ApiKeyInput />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="container mx-auto p-4 sm:p-6 md:p-8 min-h-screen bg-muted/20">
@@ -218,47 +269,54 @@ export default function WishWorryBoardPage() {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin" /> Analyzing...
               </div>
-            ) : (
-              insights && (
-                <div className="flex flex-wrap gap-4 text-sm">
-                  {insights.wishesSummary && (
-                    <div className="flex items-center gap-2 bg-green-100 text-green-800 p-2 rounded-md">
-                      <Lightbulb className="w-4 h-4" /> <strong>Wishes:</strong>{" "}
-                      {insights.wishesSummary}
-                    </div>
-                  )}
-                  {insights.worriesSummary && (
-                    <div className="flex items-center gap-2 bg-red-100 text-red-800 p-2 rounded-md">
-                      <AlertTriangle className="w-4 h-4" />{" "}
-                      <strong>Worries:</strong> {insights.worriesSummary}
-                    </div>
-                  )}
+            ) : insights ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <h4 className="font-semibold flex items-center gap-2 text-green-700">
+                    <Lightbulb className="w-4 h-4" /> Wishes Summary
+                  </h4>
+                  <p className="text-sm bg-green-50 p-3 rounded-md border border-green-200">
+                    {insights.wishesSummary}
+                  </p>
                 </div>
-              )
-            )}
+                <div className="space-y-2">
+                  <h4 className="font-semibold flex items-center gap-2 text-orange-700">
+                    <AlertTriangle className="w-4 h-4" /> Worries Summary
+                  </h4>
+                  <p className="text-sm bg-orange-50 p-3 rounded-md border border-orange-200">
+                    {insights.worriesSummary}
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       )}
 
-      {/* Wishes and Worries Columns */}
-      <div className="grid md:grid-cols-2 gap-8">
+      {/* Input Section */}
+      <div className="grid gap-6 md:grid-cols-2 max-w-6xl mx-auto">
         {/* Wishes Column */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-headline text-green-600 flex items-center gap-2">
-            <Lightbulb /> My AI Wishes
-          </h2>
-          <Card>
-            <CardContent className="p-4 space-y-2">
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <Lightbulb className="w-5 h-5" /> Wishes
+            </CardTitle>
+            <CardDescription>
+              What are your hopes and dreams for AI?
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
               <Textarea
-                placeholder="What are you hopeful about with AI?"
+                placeholder="Share your wish for AI..."
                 value={newWish}
                 onChange={(e) => setNewWish(e.target.value)}
-                disabled={isSubmittingWish}
+                className="min-h-[100px] resize-none"
               />
               <Button
                 onClick={() => handleAddNote("wish")}
-                disabled={isSubmittingWish}
-                className="w-full bg-green-600 hover:bg-green-700"
+                disabled={isSubmittingWish || !newWish.trim()}
+                className="w-full"
               >
                 {isSubmittingWish ? (
                   <>
@@ -267,47 +325,53 @@ export default function WishWorryBoardPage() {
                   </>
                 ) : (
                   <>
-                    <Send className="mr-2 h-4 w-4" /> Add Wish
+                    <Send className="mr-2 h-4 w-4" />
+                    Add Wish
                   </>
                 )}
               </Button>
-            </CardContent>
-          </Card>
-          <div className="space-y-4">
-            {wishes.map((note) => (
-              <Card
-                key={note.id}
-                className="shadow-sm bg-green-50/50"
-                style={note.style}
-              >
-                <CardContent className="p-4">
-                  <p className="text-card-foreground">{note.text}</p>
-                  <p className="text-xs text-muted-foreground mt-2 text-right">
-                    - {note.author}, {note.authorTitle}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+            </div>
+
+            {/* Display Wishes */}
+            <div className="space-y-3">
+              {wishes.map((wish, index) => (
+                <div
+                  key={index}
+                  className="bg-green-50 border border-green-200 p-3 rounded-lg shadow-sm"
+                  style={wish.style}
+                >
+                  <p className="text-sm text-green-800">{wish.text}</p>
+                  <div className="flex items-center justify-between mt-2 text-xs text-green-600">
+                    <span>{wish.author}</span>
+                    <span>{wish.authorTitle}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Worries Column */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-headline text-red-600 flex items-center gap-2">
-            <AlertTriangle /> My AI Worries
-          </h2>
-          <Card>
-            <CardContent className="p-4 space-y-2">
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-orange-700">
+              <AlertTriangle className="w-5 h-5" /> Worries
+            </CardTitle>
+            <CardDescription>
+              What concerns do you have about AI?
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
               <Textarea
-                placeholder="What are your concerns about AI?"
+                placeholder="Share your worry about AI..."
                 value={newWorry}
                 onChange={(e) => setNewWorry(e.target.value)}
-                disabled={isSubmittingWorry}
+                className="min-h-[100px] resize-none"
               />
               <Button
                 onClick={() => handleAddNote("worry")}
-                variant="destructive"
-                disabled={isSubmittingWorry}
+                disabled={isSubmittingWorry || !newWorry.trim()}
                 className="w-full"
               >
                 {isSubmittingWorry ? (
@@ -317,29 +381,31 @@ export default function WishWorryBoardPage() {
                   </>
                 ) : (
                   <>
-                    <Send className="mr-2 h-4 w-4" /> Add Worry
+                    <Send className="mr-2 h-4 w-4" />
+                    Add Worry
                   </>
                 )}
               </Button>
-            </CardContent>
-          </Card>
-          <div className="space-y-4">
-            {worries.map((note) => (
-              <Card
-                key={note.id}
-                className="shadow-sm bg-red-50/50"
-                style={note.style}
-              >
-                <CardContent className="p-4">
-                  <p className="text-card-foreground">{note.text}</p>
-                  <p className="text-xs text-muted-foreground mt-2 text-right">
-                    - {note.author}, {note.authorTitle}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+            </div>
+
+            {/* Display Worries */}
+            <div className="space-y-3">
+              {worries.map((worry, index) => (
+                <div
+                  key={index}
+                  className="bg-orange-50 border border-orange-200 p-3 rounded-lg shadow-sm"
+                  style={worry.style}
+                >
+                  <p className="text-sm text-orange-800">{worry.text}</p>
+                  <div className="flex items-center justify-between mt-2 text-xs text-orange-600">
+                    <span>{worry.author}</span>
+                    <span>{worry.authorTitle}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

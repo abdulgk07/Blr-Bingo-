@@ -1,5 +1,6 @@
 // Client-side functions that call our secure API routes
 // OpenAI calls are now handled server-side in API routes
+// The API key is provided by the user and sent with each request
 
 // Types for validation
 export interface ValidateBingoPatternInput {
@@ -24,7 +25,8 @@ export interface ConsolidateWishesAndWorriesOutput {
 
 // Validate bingo pattern using our secure API route
 export async function validateBingoPattern(
-  input: ValidateBingoPatternInput
+  input: ValidateBingoPatternInput,
+  apiKey: string
 ): Promise<ValidateBingoPatternOutput> {
   const { card, markedSquares } = input;
 
@@ -34,7 +36,7 @@ export async function validateBingoPattern(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ card, markedSquares }),
+      body: JSON.stringify({ card, markedSquares, apiKey }),
     });
 
     if (!response.ok) {
@@ -55,7 +57,8 @@ export async function validateBingoPattern(
 
 // Consolidate wishes and worries using our secure API route
 export async function consolidateWishesAndWorries(
-  input: ConsolidateWishesAndWorriesInput
+  input: ConsolidateWishesAndWorriesInput,
+  apiKey: string
 ): Promise<ConsolidateWishesAndWorriesOutput> {
   const { wishes, worries } = input;
 
@@ -65,7 +68,7 @@ export async function consolidateWishesAndWorries(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ wishes, worries }),
+      body: JSON.stringify({ wishes, worries, apiKey }),
     });
 
     if (!response.ok) {

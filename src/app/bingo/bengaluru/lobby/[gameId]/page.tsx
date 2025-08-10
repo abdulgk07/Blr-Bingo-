@@ -10,9 +10,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Copy, Users } from "lucide-react";
+import { Copy, Users, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { gameStorage, playerStorage, type Player } from "@/lib/storage";
+import { useApiKey } from "@/contexts/ApiKeyContext";
+import { ApiKeyInput } from "@/components/api-key-input";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,7 @@ export default function LobbyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { isApiKeySet } = useApiKey();
 
   const gameId = params.gameId as string;
   const playerName = searchParams.get("playerName") || "Guest";
@@ -97,6 +100,40 @@ export default function LobbyPage() {
   };
 
   const getHost = () => players.find((p) => p.isHost);
+
+  // If host doesn't have API key, show API key input
+  if (isHost && !isApiKeySet) {
+    return (
+      <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
+        <Card className="w-full max-w-lg shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="inline-block p-4 bg-orange-100 rounded-full mb-4">
+              <Key className="w-12 h-12 text-orange-600" />
+            </div>
+            <CardTitle className="font-headline text-3xl">
+              API Key Required
+            </CardTitle>
+            <CardDescription>
+              As the host, you need to provide your OpenAI API key to start the
+              game with AI features.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-6">
+            <ApiKeyInput />
+            <div className="text-sm text-muted-foreground">
+              <p>
+                Game ID:{" "}
+                <span className="font-mono font-bold text-primary">
+                  {gameId}
+                </span>
+              </p>
+              <p>Players waiting: {players.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   return (
     <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">

@@ -11,12 +11,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { Users, Dices, PlusCircle, TestTube } from "lucide-react";
+import { Users, Dices, PlusCircle, TestTube, Key } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { gameStorage, playerStorage, generateGameId } from "@/lib/storage";
+import { useApiKey } from "@/contexts/ApiKeyContext";
+import { ApiKeyInput } from "@/components/api-key-input";
 
 export default function BingoEntryPage() {
   const router = useRouter();
+  const { isApiKeySet } = useApiKey();
   const [playerName, setPlayerName] = useState("");
   const [gameCode, setGameCode] = useState("");
   const [error, setError] = useState("");
@@ -90,6 +93,44 @@ export default function BingoEntryPage() {
       `/bingo/bengaluru/play/${mockGameId}?playerName=${mockPlayerName}&isHost=false`
     );
   };
+
+  if (!isApiKeySet) {
+    return (
+      <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
+        <header className="text-center mb-8">
+          <div className="inline-block p-4 bg-primary/20 rounded-full mb-4">
+            <Dices className="w-16 h-16 text-primary" />
+          </div>
+          <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">
+            Bengaluru Bingo
+          </h1>
+          <p className="font-body text-muted-foreground mt-2 text-lg">
+            The chaotic Bengaluru experience, now in a game.
+          </p>
+        </header>
+
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card className="shadow-lg">
+            <CardHeader className="text-center">
+              <div className="inline-block p-4 bg-orange-100 rounded-full mb-4">
+                <Key className="w-12 h-12 text-orange-600" />
+              </div>
+              <CardTitle className="font-headline text-2xl">
+                API Key Required
+              </CardTitle>
+              <CardDescription>
+                To play Bengaluru Bingo with AI features, you need to provide
+                your OpenAI API key first.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ApiKeyInput />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">

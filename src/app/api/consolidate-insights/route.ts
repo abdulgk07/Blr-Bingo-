@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { rateLimit } from "@/lib/rate-limit";
-import { env } from "@/lib/env";
-
-// Initialize OpenAI client server-side only
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +19,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { wishes, worries } = body;
+    const { wishes, worries, apiKey } = body;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "API key is required" },
+        { status: 400 }
+      );
+    }
 
     if (!wishes || !worries) {
       return NextResponse.json(
@@ -54,6 +55,11 @@ Please respond with a JSON object containing:
 
 Example response:
 {"wishesSummary": "Personalized Learning (2), Medical Breakthroughs (1)", "worriesSummary": "Job Displacement (3), Privacy (2), AI Bias (1)"}`;
+
+    // Initialize OpenAI client with the provided API key
+    const openai = new OpenAI({
+      apiKey: apiKey,
+    });
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
