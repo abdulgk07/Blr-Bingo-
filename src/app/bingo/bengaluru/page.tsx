@@ -11,9 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { Users, Dices, PlusCircle, TestTube, Key } from "lucide-react";
+import { Dices, PlusCircle, Users, Key, TestTube } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { gameStorage, playerStorage, generateGameId } from "@/lib/storage";
 import { useApiKey } from "@/contexts/ApiKeyContext";
 import { ApiKeyInput } from "@/components/api-key-input";
 
@@ -21,7 +20,8 @@ export default function BingoEntryPage() {
   const router = useRouter();
   const { isApiKeySet } = useApiKey();
   const [playerName, setPlayerName] = useState("");
-  const [gameCode, setGameCode] = useState("");
+  const [gameId, setGameId] = useState("");
+  const [activeTab, setActiveTab] = useState<"create" | "join">("join");
   const [error, setError] = useState("");
 
   const handleCreateGame = async () => {
@@ -29,61 +29,32 @@ export default function BingoEntryPage() {
       setError("Please enter your name to create a game.");
       return;
     }
-    setError("");
-    const newGameId = generateGameId();
-
-    try {
-      // Create game
-      gameStorage.saveGame({
-        id: newGameId,
-        hostName: playerName,
-        status: "lobby",
-        createdAt: new Date(),
-      });
-
-      // Add host as player
-      playerStorage.savePlayer(newGameId, {
-        id: playerName,
-        name: playerName,
-        isHost: true,
-      });
-
-      router.push(
-        `/bingo/bengaluru/lobby/${newGameId}?playerName=${playerName}&isHost=true`
+    if (!isApiKeySet) {
+      setError(
+        "You need to provide an OpenAI API key to create a game with AI features."
       );
-    } catch (e) {
-      console.error("Error creating game: ", e);
-      setError("Could not create the game. Please try again.");
-    }
-  };
-
-  const handleJoinGame = async () => {
-    if (!playerName.trim() || !gameCode.trim()) {
-      setError("Please enter your name and a game code to join.");
       return;
     }
     setError("");
+    const newGameId = Math.floor(1000 + Math.random() * 9000).toString();
+    router.push(
+      `/bingo/bengaluru/lobby/${newGameId}?playerName=${encodeURIComponent(
+        playerName
+      )}&isHost=true`
+    );
+  };
 
-    try {
-      const game = gameStorage.getGame(gameCode.toUpperCase());
-
-      if (game) {
-        // Add player to game
-        playerStorage.savePlayer(gameCode.toUpperCase(), {
-          id: playerName,
-          name: playerName,
-          isHost: false,
-        });
-        router.push(
-          `/bingo/bengaluru/lobby/${gameCode.toUpperCase()}?playerName=${playerName}`
-        );
-      } else {
-        setError("Game not found. Please check the code and try again.");
-      }
-    } catch (e) {
-      console.error("Error joining game: ", e);
-      setError("Could not join the game. Please try again.");
+  const handleJoinGame = async () => {
+    if (!playerName.trim() || !gameId.trim()) {
+      setError("Please enter your name and the game ID to join.");
+      return;
     }
+    setError("");
+    router.push(
+      `/bingo/bengaluru/lobby/${gameId}?playerName=${encodeURIComponent(
+        playerName
+      )}&isHost=false`
+    );
   };
 
   const handleMockGame = () => {
@@ -93,44 +64,6 @@ export default function BingoEntryPage() {
       `/bingo/bengaluru/play/${mockGameId}?playerName=${mockPlayerName}&isHost=false`
     );
   };
-
-  if (!isApiKeySet) {
-    return (
-      <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
-        <header className="text-center mb-8">
-          <div className="inline-block p-4 bg-primary/20 rounded-full mb-4">
-            <Dices className="w-16 h-16 text-primary" />
-          </div>
-          <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">
-            Bengaluru Bingo
-          </h1>
-          <p className="font-body text-muted-foreground mt-2 text-lg">
-            The chaotic Bengaluru experience, now in a game.
-          </p>
-        </header>
-
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Card className="shadow-lg">
-            <CardHeader className="text-center">
-              <div className="inline-block p-4 bg-orange-100 rounded-full mb-4">
-                <Key className="w-12 h-12 text-orange-600" />
-              </div>
-              <CardTitle className="font-headline text-2xl">
-                API Key Required
-              </CardTitle>
-              <CardDescription>
-                To play Bengaluru Bingo with AI features, you need to provide
-                your OpenAI API key first.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ApiKeyInput />
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
@@ -164,7 +97,11 @@ export default function BingoEntryPage() {
             className="text-center text-lg h-12"
           />
 
-          <Tabs defaultValue="join" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as "create" | "join")}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="create">
                 <PlusCircle /> Create Game
@@ -177,22 +114,39 @@ export default function BingoEntryPage() {
               <p className="text-muted-foreground">
                 Start a new game and invite your friends!
               </p>
+              {!isApiKeySet && (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                  <div className="flex items-center gap-2 text-orange-800">
+                    <Key className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      API Key Required
+                    </span>
+                  </div>
+                  <p className="text-xs text-orange-700 mt-1">
+                    You need an OpenAI API key to create games with AI features.
+                  </p>
+                  <div className="mt-3">
+                    <ApiKeyInput />
+                  </div>
+                </div>
+              )}
               <Button
                 size="lg"
                 className="w-full font-headline"
                 onClick={handleCreateGame}
+                disabled={!isApiKeySet}
               >
-                Create New Game
+                {isApiKeySet ? "Create New Game" : "Set API Key First"}
               </Button>
             </TabsContent>
             <TabsContent value="join" className="space-y-4 pt-4">
               <Input
-                id="game-code"
-                placeholder="Enter 4-digit game code"
-                value={gameCode}
-                onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                id="game-id"
+                placeholder="Enter 4-digit game ID"
+                value={gameId}
+                onChange={(e) => setGameId(e.target.value)}
                 className="text-center"
-                maxLength={4}
+                type="number"
               />
               <Button
                 size="lg"
@@ -201,6 +155,9 @@ export default function BingoEntryPage() {
               >
                 Join Game
               </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                No API key needed to join games as a player!
+              </p>
             </TabsContent>
           </Tabs>
 
@@ -220,7 +177,7 @@ export default function BingoEntryPage() {
 
           <Button variant="outline" className="w-full" onClick={handleMockGame}>
             <TestTube className="w-4 h-4 mr-2" />
-            Run Mock Game (You are Player, System is Host)
+            Test the Game
           </Button>
         </CardContent>
       </Card>

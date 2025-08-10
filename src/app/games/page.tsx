@@ -59,87 +59,91 @@ export default function GamesListPage() {
         </p>
       </header>
 
-      {!isApiKeySet ? (
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Card className="shadow-lg">
-            <CardHeader className="text-center">
-              <div className="inline-block p-4 bg-orange-100 rounded-full mb-4">
-                <Key className="w-12 h-12 text-orange-600" />
+      <Card className="w-full max-w-4xl mx-auto shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl">
+            Game Chapters
+          </CardTitle>
+          {!isApiKeySet && (
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+              <div className="flex items-center gap-2 text-orange-800">
+                <Key className="h-4 w-4" />
+                <span className="text-sm font-medium">API Key Notice</span>
               </div>
-              <CardTitle className="font-headline text-2xl">
-                API Key Required
-              </CardTitle>
-              <CardDescription>
-                To play games with AI features, you need to provide your OpenAI
-                API key first.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ApiKeyInput />
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <Card className="w-full max-w-4xl mx-auto shadow-lg">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">
-              Game Chapters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Accordion
-              type="single"
-              collapsible
-              defaultValue="Bengaluru"
-              className="w-full"
-            >
-              {games.map((game) => (
-                <AccordionItem value={game.city} key={game.city}>
-                  <AccordionTrigger className="text-xl font-headline">
-                    <div className="flex items-center gap-2">
-                      {game.city === "General" ? (
-                        <BrainCircuit className="text-primary" />
-                      ) : (
-                        <MapPin className="text-primary" />
-                      )}
-                      {game.city}
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {game.activities.length > 0 ? (
-                      <div className="grid gap-4 mt-4">
-                        {game.activities.map((activity) => (
-                          <Card key={activity.name} className="bg-card/80">
-                            <CardHeader>
-                              <CardTitle className="font-body flex items-center gap-2">
-                                <activity.icon /> {activity.name}
-                              </CardTitle>
-                              <CardDescription>
-                                {activity.description}
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
+              <p className="text-xs text-orange-700 mt-1">
+                You can browse and join games without an API key. You'll only
+                need one if you want to create games with AI features.
+              </p>
+              <div className="mt-3">
+                <ApiKeyInput />
+              </div>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="Bengaluru"
+            className="w-full"
+          >
+            {games.map((game) => (
+              <AccordionItem value={game.city} key={game.city}>
+                <AccordionTrigger className="text-xl font-headline">
+                  <div className="flex items-center gap-2">
+                    {game.city === "General" ? (
+                      <MapPin className="w-5 h-5" />
+                    ) : (
+                      <MapPin className="w-5 h-5" />
+                    )}
+                    {game.city}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  {game.activities.length > 0 ? (
+                    <div className="grid gap-4 p-4">
+                      {game.activities.map((activity) => (
+                        <Card
+                          key={activity.name}
+                          className="hover:shadow-md transition-shadow"
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-primary/10 rounded-lg">
+                                  <activity.icon className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                  <h3 className="font-headline text-lg font-semibold">
+                                    {activity.name}
+                                  </h3>
+                                  <p className="text-muted-foreground text-sm">
+                                    {activity.description}
+                                  </p>
+                                </div>
+                              </div>
                               <Button
                                 onClick={() => router.push(activity.path)}
+                                className="font-headline"
                               >
-                                Play Now
+                                Play
                               </Button>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-center p-4">
-                        More games coming soon for {game.city}!
-                      </p>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
-      )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-muted-foreground">
+                      <p>Coming soon...</p>
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
     </main>
   );
 }

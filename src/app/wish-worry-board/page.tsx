@@ -24,10 +24,17 @@ export default function WishWorryBoardEntryPage() {
   const [userTitle, setUserTitle] = useState("");
   const [boardId, setBoardId] = useState("");
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<"create" | "join">("join");
 
   const handleCreateBoard = () => {
     if (!userName.trim() || !userTitle.trim()) {
       setError("Please enter your name and title to create a board.");
+      return;
+    }
+    if (!isApiKeySet) {
+      setError(
+        "You need to provide an OpenAI API key to create a board with AI features."
+      );
       return;
     }
     setError("");
@@ -62,44 +69,6 @@ export default function WishWorryBoardEntryPage() {
       )}&userTitle=${encodeURIComponent(mockUserTitle)}&isHost=true`
     );
   };
-
-  if (!isApiKeySet) {
-    return (
-      <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
-        <header className="text-center mb-8">
-          <div className="inline-block p-4 bg-primary/20 rounded-full mb-4">
-            <BrainCircuit className="w-16 h-16 text-primary" />
-          </div>
-          <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">
-            AI Wish & Worry Board
-          </h1>
-          <p className="font-body text-muted-foreground mt-2 text-lg">
-            Collaborate with your team to share your hopes and fears about AI.
-          </p>
-        </header>
-
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Card className="shadow-lg">
-            <CardHeader className="text-center">
-              <div className="inline-block p-4 bg-orange-100 rounded-full mb-4">
-                <Key className="w-12 h-12 text-orange-600" />
-              </div>
-              <CardTitle className="font-headline text-2xl">
-                API Key Required
-              </CardTitle>
-              <CardDescription>
-                To use the AI Wish & Worry Board with AI features, you need to
-                provide your OpenAI API key first.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ApiKeyInput />
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
@@ -144,7 +113,11 @@ export default function WishWorryBoardEntryPage() {
             />
           </div>
 
-          <Tabs defaultValue="join" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as "create" | "join")}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="create">
                 <PlusCircle /> Create
@@ -157,12 +130,30 @@ export default function WishWorryBoardEntryPage() {
               <p className="text-muted-foreground">
                 Start a new board and invite your team!
               </p>
+              {!isApiKeySet && (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                  <div className="flex items-center gap-2 text-orange-800">
+                    <Key className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      API Key Required
+                    </span>
+                  </div>
+                  <p className="text-xs text-orange-700 mt-1">
+                    You need an OpenAI API key to create boards with AI
+                    features.
+                  </p>
+                  <div className="mt-3">
+                    <ApiKeyInput />
+                  </div>
+                </div>
+              )}
               <Button
                 size="lg"
                 className="w-full font-headline"
                 onClick={handleCreateBoard}
+                disabled={!isApiKeySet}
               >
-                Create New Board
+                {isApiKeySet ? "Create New Board" : "Set API Key First"}
               </Button>
             </TabsContent>
             <TabsContent value="join" className="space-y-4 pt-4">
@@ -181,6 +172,9 @@ export default function WishWorryBoardEntryPage() {
               >
                 Join Board
               </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                No API key needed to join boards as a participant!
+              </p>
             </TabsContent>
           </Tabs>
 
